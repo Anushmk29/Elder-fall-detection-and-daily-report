@@ -80,6 +80,33 @@ def detect_falls(samples, cfg):
     return found
 
 
+def detect_collapse(samples, cfg):
+    """Posture-free fall: the top of an upright person's box drops >= collapse_frac of their height within
+    collapse_window_s while the feet don't rise (walking away from the camera shrinks the box too, but the feet move
+    up the image), and they aren't that tall again for min_down_s. Catches falls that end sitting or slumped on the
+    floor, which a low-resolution pose often still reads as 'standing' (see learning/GUIDE.md, Le2i)."""
+    frac = cfg.get("collapse_frac", 0)
+    found, k, n = [], 1, len(samples)
+    while frac and k < n:
+        s = samples[k]
+        ups = [p for p in samples[:k] if p["posture"] in UPRIGHT and 0 < s["t"] - p["t"] <= cfg.get("collapse_window_s", 1.5)]
+        p = next((p for p in ups if s["box"][1] - p["box"][1] >= frac * _height(p)
+                  and s["box"][3] >= p["box"][3] - cfg.get("collapse_feet", 0.15) * _height(p)), None)
+        if not p:
+            k += 1
+            continue
+        end = next((m for m in range(k + 1, n) if _height(samples[m]) > cfg.get("collapse_up_ratio", 0.85) * _height(p)), None)
+        down_until = samples[end]["t"] if end is not None else samples[-1]["t"]
+        if down_until - s["t"] < cfg["min_down_s"]:
+            k += 1
+            continue
+        found.append({"t": s["t"], "t_end": down_until, "zones": s.get("zones", []), "how": "collapse",
+                      "h_ratio": round(_height(s) / _height(p), 2),
+                      "got_up_s": round(down_until - s["t"], 1) if end is not None else None})
+        k = end if end is not None else n
+    return found
+
+
 def detect_vanish(samples, others, meta, cfg):
     """An upright person drops and then nobody can be seen: COCO pose models often miss a body lying on the floor,
     so losing someone right after their body dropped is itself a fall signature. Ignored when they were at the edge
@@ -178,6 +205,7 @@ def analyze(tracks, meta, rules):
             timeline.append(seg)
 
         falls = detect_falls(S, rules["fall"])
+        falls += [c for c in detect_collapse(S, rules["fall"]) if not any(abs(f["t"] - c["t"]) < 5 for f in falls)]
         v = detect_vanish(S, [o for o in order if o is not tr], meta, rules["fall"])
         if v and not any(abs(f["t"] - v["t"]) < 5 or f["got_up_s"] is None for f in falls):
             falls.append(v)

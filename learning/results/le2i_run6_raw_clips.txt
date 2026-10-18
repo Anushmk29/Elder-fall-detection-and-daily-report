@@ -1,0 +1,128 @@
+=== Coffee_room_01
+video (1).avi: MISSED fall_any at 2s ()
+video (11).avi: MISSED fall_any at 15s ()
+video (12).avi: MISSED fall_any at 2s ()
+video (13).avi: MISSED fall_any at 4s ()
+video (14).avi: MISSED fall_any at 2s ()
+video (15).avi: MISSED fall_any at 2s ()
+video (18).avi: MISSED fall_any at 6s ()
+video (19).avi: MISSED fall_any at 4s ()
+video (2).avi: MISSED fall_any at 8s ()
+video (20).avi: MISSED fall_any at 13s ()
+video (21).avi: MISSED fall_any at 3s ()
+video (22).avi: MISSED fall_any at 5s ()
+video (23).avi: MISSED fall_any at 8s ()
+video (24).avi: MISSED fall_any at 8s ()
+video (25).avi: MISSED fall_any at 5s ()
+video (27).avi: MISSED fall_any at 7s ()
+video (28).avi: MISSED fall_any at 2s ()
+video (29).avi: MISSED fall_any at 12s ()
+video (3).avi: MISSED fall_any at 9s ()
+video (30).avi: MISSED fall_any at 3s ()
+video (31).avi: MISSED fall_any at 6s ()
+video (32).avi: MISSED fall_any at 8s ()
+video (34).avi: MISSED fall_any at 13s ()
+video (35).avi: MISSED fall_any at 3s ()
+video (36).avi: MISSED fall_any at 44s ()
+video (37).avi: MISSED fall_any at 2s ()
+video (38).avi: MISSED fall_any at 9s ()
+video (39).avi: MISSED fall_any at 2s ()
+video (4).avi: MISSED fall_any at 5s ()
+video (40).avi: MISSED fall_any at 10s ()
+video (41).avi: MISSED fall_any at 11s ()
+video (42).avi: MISSED fall_any at 4s ()
+video (43).avi: MISSED fall_any at 25s ()
+video (44).avi: MISSED fall_any at 2s ()
+video (45).avi: MISSED fall_any at 4s ()
+video (46).avi: MISSED fall_any at 7s ()
+video (47).avi: MISSED fall_any at 25s ()
+video (48).avi: MISSED fall_any at 26s ()
+video (5).avi: MISSED fall_any at 5s ()
+video (6).avi: MISSED fall_any at 5s ()
+video (7).avi: MISSED fall_any at 4s ()
+video (8).avi: MISSED fall_any at 6s ()
+video (9).avi: MISSED fall_any at 4s ()
+
+videos 48, 9.6 min of video
+falls seen (possible fall)   4/47 = 9%
+  per take, any camera       4/47
+FALL ALERT on stay-down falls 0/0
+wrong ALERT on got-up falls  0/0
+false possible falls         0 (0.0/h)
+false FALL ALERTs            0 (0.0/h)
+=== Coffee_room_02
+video (49).avi: MISSED fall_any at 17s ()
+video (51).avi: MISSED fall_any at 3s ()
+video (53).avi: MISSED fall_any at 10s ()
+video (54).avi: MISSED fall_any at 6s ()
+video (55).avi: MISSED fall_any at 9s ()
+video (56).avi: MISSED fall_any at 12s ()
+video (57).avi: MISSED fall_any at 18s ()
+video (58).avi: MISSED fall_any at 7s ()
+video (59).avi: MISSED fall_any at 5s ()
+video (60).avi: MISSED fall_any at 5s ()
+video (62).avi: MISSED fall_any at 7s ()
+video (64).avi: MISSED fall_any at 5s ()
+
+videos 22, 8.8 min of video
+falls seen (possible fall)   0/12 = 0%
+  per take, any camera       0/12
+FALL ALERT on stay-down falls 0/0
+wrong ALERT on got-up falls  0/0
+false possible falls         0 (0.0/h)
+false FALL ALERTs            0 (0.0/h)
+=== Home_01
+video (1).avi: MISSED fall_any at 6s ()
+video (10).avi: MISSED fall_any at 6s ()
+video (11).avi: MISSED fall_any at 6s ()
+video (12).avi: MISSED fall_any at 7s ()
+video (13).avi: MISSED fall_any at 6s ()
+video (14).avi: MISSED fall_any at 8s ()
+video (15).avi: MISSED fall_any at 7s ()
+video (16).avi: MISSED fall_any at 8s ()
+video (17).avi: MISSED fall_any at 6s ()
+video (18).avi: MISSED fall_any at 6s ()
+video (19).avi: MISSED fall_any at 5s ()
+video (2).avi: MISSED fall_any at 5s ()
+video (20).avi: MISSED fall_any at 6s ()
+video (21).avi: MISSED fall_any at 6s ()
+video (22).avi: MISSED fall_any at 6s ()
+video (23).avi: MISSED fall_any at 7s ()
+video (24).avi: MISSED fall_any at 5s ()
+video (25).avi: MISSED fall_any at 7s ()
+video (26).avi: MISSED fall_any at 5s ()
+video (27).avi: MISSED fall_any at 7s ()
+video (28).avi: MISSED fall_any at 7s ()
+video (29).avi: MISSED fall_any at 7s ()
+video (3).avi: MISSED fall_any at 5s ()
+video (30).avi: MISSED fall_any at 5s ()
+video (4).avi: MISSED fall_any at 6s ()
+video (5).avi: MISSED fall_any at 5s ()
+video (6).avi: MISSED fall_any at 5s ()
+video (7).avi: MISSED fall_any at 6s ()
+video (8).avi: MISSED fall_any at 5s ()
+video (9).avi: MISSED fall_any at 6s ()
+
+videos 30, 5.0 min of video
+falls seen (possible fall)   0/30 = 0%
+  per take, any camera       0/30
+FALL ALERT on stay-down falls 0/0
+wrong ALERT on got-up falls  0/0
+false possible falls         0 (0.0/h)
+false FALL ALERTs            0 (0.0/h)
+=== Home_02
+video (31).avi: MISSED fall_any at 8s ()
+video (32).avi: MISSED fall_any at 4s ()
+video (33).avi: MISSED fall_any at 5s ()
+video (34).avi: MISSED fall_any at 7s ()
+video (35).avi: MISSED fall_any at 6s ()
+video (36).avi: MISSED fall_any at 5s ()
+video (37).avi: MISSED fall_any at 5s ()
+
+videos 30, 5.1 min of video
+falls seen (possible fall)   0/7 = 0%
+  per take, any camera       0/7
+FALL ALERT on stay-down falls 0/0
+wrong ALERT on got-up falls  0/0
+false possible falls         0 (0.0/h)
+false FALL ALERTs            0 (0.0/h)

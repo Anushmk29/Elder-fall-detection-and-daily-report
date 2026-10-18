@@ -132,6 +132,13 @@ shape** (`aspect ≥ 1.2`, tuned) away from the frame edges, and then **nobody i
 because the pose model often *fails to detect a person lying on the floor* (§7, finding 4). Losing someone right
 after their body dropped is itself a fall signature.
 
+**Path D, "collapse" (off by default, `collapse_frac: 0`):** whatever the posture classifier says, the **top of the
+box drops ≥ 0.45 body-heights within 1 s while the feet stay put**, and the person isn't that tall again for
+`min_down_s`. Built for falls that end *sitting or slumped on the floor*, which at low resolution still read as
+"standing" (§7, Le2i). The "feet stay put" check is what separates it from walking away from the camera, which
+also shrinks the box but moves the feet up the image. It costs false alarms where there are no rest zones, so it is
+enabled per camera (`collapse_frac: 0.45` in that camera's rules file) once the sofa and bed are drawn.
+
 **Always:** a fall that starts inside a `kind: rest` zone (bed, sofa) is ignored.
 
 Other events: `lying_outside_rest` (lying outside bed/sofa for > N s) and `stillness` (moved < 0.15 body-lengths
@@ -227,6 +234,22 @@ filmed by 8 wide-angle ceiling cameras, one actor. Location:
   minute** instead of hours. This made fast experiments possible. Change the model, `det_conf` or `imgsz`, and a
   new cache folder is made.
 
+### 5.1 Second dataset: Le2i (home-like rooms)
+
+**Le2i fall dataset** (Charfi et al., Univ. Burgundy, 2013): one fixed camera at about head height, 320×240 at
+25 fps (Home_01 is 24 fps), rooms that look like a home: a kitchen/coffee room and a living room. Extracted from
+`archive (6).zip` to `D:\datasets\le2i\` (only the four annotated rooms: Coffee_room_01/02, Home_01/02 = 130
+videos, 96 falls, 34 without). Each `Annotation_files\video (i).txt` starts with the first and last *frame* of the
+fall, then one box per frame. Three files have no fall lines and are treated as no-fall.
+
+- `scripts/le2i_labels.py` converts them into the same `labels.csv` your staged recordings use, so the **same
+  scorer** (`scripts/eval_staged.py`) works on both. One scorer for every dataset = numbers you can compare.
+- **Clips end ~4 s after the fall.** The rules want the person down for 5 s, so on the raw clips nothing can ever
+  fire (run 6 below). `--hold 10` repeats the last frame for 10 s: "they stayed as they were when the camera
+  stopped". A person standing at the end stays standing, so it can't invent falls. Lesson: **know how your test
+  data was cut**; a harness that doesn't match how the product runs measures the harness.
+- Lecture_room and Office (60 videos) have no annotations and weren't extracted.
+
 ---
 
 ## 6. "Training" in this project, honestly
@@ -272,6 +295,10 @@ parameters to data. Here there are 4 parameters, not millions.
 | 5 | Feature analysis + grid search on tune → `min_down_s 5`, `vanish_min_aspect 1.2` | tune | 35%, per scenario 16/17 | **3.2/h** (alert-level **0**) | Big false-alarm cut, some recall given up |
 | 5 | Same thresholds, **held-out test** | test | **27%**, per scenario 6/8 | **19.5/h** (alert-level **0.8/h**) | Generalises partly. The gap from tune is overfitting |
 | — | Final rules, model comparison on the same 48 falls (chute01–05) | 40 clips | nano@0.25: 9/48 · **medium@0.15: 18/48** | 0 / 0 | Medium model doubles recall |
+| 6 | Run-5 rules on **Le2i**, never tuned on, raw clips | 130 videos | **4/96 (4%)** | 0 | Zero hits *and* zero false alarms = suspicious: something systematic |
+| 7 | Same, `--hold 10` (clip end ≠ person got up) | 130 videos | **63/96 (66%)** | 3 (≈ 6/h), alert-level **0** | Pose was fine all along (conf 0.9); the clips were too short for `min_down_s` |
+| 8 | Error analysis of the 33 misses | Le2i | — | — | 16 end **seated/slumped, read as "standing"** · 8 got up within 5 s · 5 lying but missed · 4 not detected |
+| 9 | New Path D "collapse", grid on **tune** (MCFD 01–16 + Le2i Coffee) | tune | 47% → **62%** (frac 0.35) | 3.5/h → 13.8–16.7/h | Score says **off wins**. On Le2i alone +10 falls for +1 FA; on MCFD +6 falls for +10 FA (sofa/armchair, zone-fixable). None of them alert-level |
 
 Findings in plain words:
 1. **Check the data's time base.** One wrong number (fps) made a working system look completely broken.
@@ -286,6 +313,17 @@ Findings in plain words:
    it; real training (§10) would fix it.
 5. **Tune and test on separate scenarios.** On the tune set, false alarms went from 25/h to 3.2/h; on the test set
    only from 46/h to 19.5/h. Without the split we would have reported the flattering number.
+6. **"Zero hits and zero false alarms" is a bug signal, not a result.** A weak detector misses *some* falls and
+   fires on *some* look-alikes. Missing everything while firing on nothing means a gate that can never open, here
+   the 5 s stay-down check on clips that end 4 s after the fall. First print what the model saw, then blame the
+   rules.
+7. **Sort misses into causes before changing anything.** The 33 Le2i misses split into 4 different problems. Only
+   one (16 seated/slumped falls) was worth a new rule; "got up within 5 s" is the price of `min_down_s` that we
+   chose deliberately (it cut the sofa-flop false alarms on MCFD).
+8. **Decide the scoring rule before you look, then obey it.** Path D raised recall by 15 points and the score
+   still said no, because false alarms quadrupled. Changing the score after seeing that would be fooling ourselves.
+   Instead the rule ships *off*, as an option to try on your staged session 1 *with rest zones*, where its false
+   alarms (sofa/armchair) should disappear. That's a new, pre-stated test, not a re-scored old one.
 
 ---
 
@@ -297,6 +335,7 @@ Findings in plain words:
 | Fall caught by any camera (test) | 75% | — | partial |
 | False "possible fall" (test) | 19.5/h | — | logged only, not pushed |
 | False **FALL ALERT** (still down 30 s) (test) | 0.8/h of video | < 1/day | ❌ not yet; needs rest zones + staged-fall data |
+| Le2i (home-like, one camera, never tuned on) | 66% of 96 falls, 0 alert-level false alarms | — | much better than MCFD's ceiling fisheye |
 | Detection delay after the fall starts | ~1 s (median) | < 10 s | ✅ |
 | Fall → FALL ALERT | ~1 s + 30 s wait | as designed | ✅ (unit-tested, smoke-tested) |
 
@@ -319,7 +358,7 @@ sofa > 2 h rules, VLM second opinion, and `scripts/eval_live.py`.
 cd "D:\Autonoetic Edge\ElderCare"
 $env:YOLO_OFFLINE = "true"
 
-# tests (35)
+# tests (37)
 .venv\Scripts\python -m pytest -q
 
 # benchmark: the first run caches YOLO (~1.5 h on the GTX 1650 with the medium model); re-runs take ~1 min
@@ -330,6 +369,14 @@ $env:POSE_MODEL = "models/yolo11m-pose.pt"
 # the "training" step
 .venv\Scripts\python scripts\fall_features.py "C:\Users\ABC\Downloads\archive (4)"   # -> data\fall_features.csv
 .venv\Scripts\python scripts\tune_falls.py   "C:\Users\ABC\Downloads\archive (4)"
+
+# Le2i: unzip the 4 annotated rooms to D:\datasets\le2i, then
+.venv\Scripts\python scripts\le2i_labels.py D:\datasets\le2i
+.venv\Scripts\python scripts\eval_staged.py "D:\datasets\le2i\Home_01\Home_01\Videos" --hold 10 --list
+.venv\Scripts\python scripts\tune_collapse.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i
+
+# your own recordings (learning/STAGED_TEST.md)
+.venv\Scripts\python scripts\eval_staged.py data\staged\session1 --list
 
 # live, with the synthetic fall as a camera
 copy cameras.example.yaml cameras.yaml       # edit sources first

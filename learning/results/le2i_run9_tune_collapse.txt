@@ -1,0 +1,14 @@
+  {'collapse_frac': 0, 'collapse_window_s': 1.0}: recall 91/195 = 47%, false alarms 6 = 3.5/h
+  {'collapse_frac': 0.35, 'collapse_window_s': 1.0}: recall 119/195 = 61%, false alarms 24 = 13.8/h
+  {'collapse_frac': 0.35, 'collapse_window_s': 1.5}: recall 121/195 = 62%, false alarms 29 = 16.7/h
+  {'collapse_frac': 0.4, 'collapse_window_s': 1.0}: recall 113/195 = 58%, false alarms 20 = 11.5/h
+  {'collapse_frac': 0.4, 'collapse_window_s': 1.5}: recall 116/195 = 59%, false alarms 23 = 13.2/h
+  {'collapse_frac': 0.45, 'collapse_window_s': 1.0}: recall 107/195 = 55%, false alarms 17 = 9.8/h
+  {'collapse_frac': 0.45, 'collapse_window_s': 1.5}: recall 111/195 = 57%, false alarms 19 = 10.9/h
+  {'collapse_frac': 0.5, 'collapse_window_s': 1.0}: recall 102/195 = 52%, false alarms 13 = 7.5/h
+  {'collapse_frac': 0.5, 'collapse_window_s': 1.5}: recall 105/195 = 54%, false alarms 16 = 9.2/h
+  {'collapse_frac': 0.55, 'collapse_window_s': 1.0}: recall 102/195 = 52%, false alarms 12 = 6.9/h
+  {'collapse_frac': 0.55, 'collapse_window_s': 1.5}: recall 104/195 = 53%, false alarms 14 = 8.1/h
+best on TUNE: {'collapse_frac': 0, 'collapse_window_s': 1.0}
+TEST (MCFD chute17-24 + Le2i Home, never tuned on) rule off: recall 37/101 = 37%, false alarms 24 = 15.8/h
+TEST (MCFD chute17-24 + Le2i Home, never tuned on) best: recall 37/101 = 37%, false alarms 24 = 15.8/h

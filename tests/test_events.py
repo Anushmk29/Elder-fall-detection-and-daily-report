@@ -98,3 +98,18 @@ def test_walking_out_of_view_is_not_a_fall():
     s = [sample(t / 6, "standing", [880, 300, 1000, 700], stand_kp()) for t in range(0, 30)]  # at the right edge
     res = events.analyze(build(s), {**META, "duration": 40}, RULES)
     assert not [e for e in res["events"] if e["type"] == "fall"]
+
+
+def test_slumped_on_the_floor_still_read_as_standing_is_a_fall():
+    """Le2i: at 320x240 a person sitting on the floor facing the camera keeps an upright torso -> 'standing'."""
+    s = [sample(t / 6, "standing", STAND_BOX, stand_kp()) for t in range(0, 24)]
+    s += [sample(t / 6, "standing", [440, 520, 600, 720], stand_kp()) for t in range(24, 66)]  # top -0.55 bh, feet put
+    rules = {**RULES, "fall": {**RULES["fall"], "collapse_frac": 0.45}}  # off by default, enabled per camera
+    falls = events.analyze(build(s), {**META, "duration": 11}, rules)["events"]
+    assert [e["how"] for e in falls if e["type"] == "fall"] == ["collapse"]
+
+
+def test_walking_away_from_the_camera_is_not_a_collapse():
+    s = [sample(t / 6, "standing", STAND_BOX, stand_kp()) for t in range(0, 24)]
+    s += [sample(t / 6, "standing", [470, 500, 530, 560], stand_kp()) for t in range(24, 66)]  # smaller, feet rose
+    assert events.detect_collapse(s, RULES["fall"]) == []

@@ -9,6 +9,7 @@ kind: fall       fell and got up again within 30 s  -> expect "possible fall", t
       fall_stay  fell and stayed down >= 40 s       -> expect a FALL ALERT about 30 s after the fall
       lookalike  sat/lay/bent/knelt on purpose       -> expect nothing (anything here is a false alarm)
       none       whole video, nothing to detect      -> start_s/end_s empty
+      fall_any   a fall from a public dataset, unknown if they stayed down -> only "seen or missed" is scored
 take: recordings of the same moment from different phones share a take number ("caught by any camera").
 Optional <folder>/<camera>.yaml = that camera's rules (its sofa/bed rest zones), like a live camera's rules file.
 YOLO output is cached in data/staged_cache/, so re-scoring after a rule change takes seconds.
@@ -25,7 +26,7 @@ sys.path.insert(0, str(BASE / "scripts"))
 import eval_mcfd as ev  # noqa: E402
 from app import perception, pipeline  # noqa: E402
 
-FALLS = {"fall", "fall_stay"}
+FALLS = {"fall", "fall_stay", "fall_any"}
 KINDS = FALLS | {"lookalike", "none"}
 
 
@@ -61,10 +62,22 @@ def score(found, rows, duration, no_rec, pad=ev.WINDOW_PAD):
     return {"hits": hits, "false": false}
 
 
+def hold(frames, meta, secs, fps):
+    """The person stays exactly as they were when the recording stopped (standing stays standing)."""
+    if not secs or not frames:
+        return
+    last = frames[-1]
+    for k in range(1, int(secs * fps) + 1):
+        frames.append({"i": len(frames), "t": round(last["t"] + k / fps, 3), "people": [dict(p) for p in last["people"]]})
+    meta["duration"] += secs
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("folder", help="a session folder with videos + labels.csv")
     ap.add_argument("--list", action="store_true", help="print every video, not just problems")
+    ap.add_argument("--hold", type=float, default=0, help="repeat each clip's last frame for this many seconds: "
+                    "for datasets cut a few seconds after the fall (Le2i), which the stay-down rules never see")
     a = ap.parse_args()
     folder = Path(a.folder)
     labels = read_labels(folder / "labels.csv")
@@ -84,10 +97,12 @@ def main():
             sys.exit(f"labels.csv names {name}, which is not in {folder}")
         cam_rules = folder / f"{rows[0]['camera']}.yaml"
         rules = pipeline.load_rules(cam_rules if cam_rules.exists() else None)
-        cache = pipeline.DATA_DIR / "staged_cache" / f"{Path(perception.MODEL_PATH).stem}-c{rules.get('det_conf', 0.25)}"
+        cache = (pipeline.DATA_DIR / "staged_cache" / f"{Path(perception.MODEL_PATH).stem}-c{rules.get('det_conf', 0.25)}"
+                 / f"{folder.resolve().parent.name}_{folder.name}")  # Le2i rooms all name their folder "Videos"
         frames, meta = ev.load_frames(video, rules, cache)
         meta["clock_start"] = 0
         seconds += meta["duration"]
+        hold(frames, meta, a.hold, rules["sample_fps"])
         res = score(ev.detect(frames, meta, rules), rows, meta["duration"], no_rec)
 
         notes = []
@@ -107,7 +122,7 @@ def main():
                     latencies.append(e["t"] + no_rec - r["start_s"])
                 else:
                     notes.append(f"seen at {e['t']:.0f}s but NO ALERT (looked like they got up after {e['got_up_s']}s)")
-            elif e["alerts"]:
+            elif r["kind"] == "fall" and e["alerts"]:
                 n["alert_wrong"] += 1
                 notes.append(f"ALERTED at {r['start_s']:.0f}s although they got up")
         for e, cause in res["false"]:
@@ -120,7 +135,8 @@ def main():
             print(f"{name}: " + ("; ".join(notes) or "ok"))
 
     hours = max(seconds / 3600, 1e-9)
-    falls, hit = n["fall"] + n["fall_stay"], n["fall_hit"] + n["fall_stay_hit"]
+    falls = n["fall"] + n["fall_stay"] + n["fall_any"]
+    hit = n["fall_hit"] + n["fall_stay_hit"] + n["fall_any_hit"]
     print(f"\nvideos {len(labels)}, {seconds / 60:.1f} min of video")
     print(f"falls seen (possible fall)   {hit}/{falls} = {hit / max(falls, 1):.0%}")
     print(f"  per take, any camera       {sum(takes.values())}/{len(takes)}")

@@ -197,6 +197,10 @@ the rule (`lying`, `floor_drop`, `vanished`) that fired. That's the starting poi
 video at that second and ask *why*. That loop, measure → look at failures → change one thing → measure again,
 is the whole method from GUIDE.md §7.
 
+**Planned for session 1:** score it twice, with Path D ("collapse", off by default, GUIDE.md §7 run 9) off and on
+(`collapse_frac: 0.45` in each `<camera>.yaml`) with rest zones drawn. Decided in advance: keep it on only if it
+adds falls without adding false FALL ALERTs.
+
 The scoring logic is `score()` in [scripts/eval_staged.py](../scripts/eval_staged.py), and
 [tests/test_staged.py](../tests/test_staged.py) checks it on a hand-made example. Read the test first; it's the
 quickest way to see what counts as a hit, a false alarm and an alert.

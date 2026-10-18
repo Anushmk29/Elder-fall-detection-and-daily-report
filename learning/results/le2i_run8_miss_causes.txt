@@ -1,0 +1,6 @@
+Le2i run 7 (--hold 10): the 33 missed falls sorted by cause (cached YOLO output, 0-5 s after the labelled fall end)
+16 down but not lying (sitting/crouched) - pose reads "standing"/"bending" at 320x240 -> Path D (collapse) built for these
+ 8 got up within 5 s                     - by design: min_down_s 5 (cuts sofa-flop false alarms on MCFD)
+ 5 lying, rule should fire               - not analysed further yet (likely track breaks at the fall)
+ 4 not detected after fall               - person lost and Path C's conditions (wide last box, 3 s gap) don't hold
+examples: seated = Coffee_room_01/video (14),(15),(29),(30); got up = Home_01/video (10),(11),(16), Coffee_room_01/video (12)

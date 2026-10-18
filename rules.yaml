@@ -35,6 +35,8 @@ fall:
   min_down_s: 5.0         # and stay down at least this long (tuned: sinking into a sofa is up in ~3 s)
   vanish_s: 3.0           # or: the body drops, then nobody is seen for this long (lying people are often missed)
   vanish_min_aspect: 1.2  # the last-seen box must be wide (on the floor), not upright (walked behind furniture)
+  collapse_frac: 0        # or (OFF; 0.45 in a camera's rules file enables it): whatever the posture says, the box
+  collapse_window_s: 1.0  # top drops this many body heights this fast, feet put (falls ending seated, GUIDE §7)
 
 lying_outside_rest_s: 120
 stillness:
