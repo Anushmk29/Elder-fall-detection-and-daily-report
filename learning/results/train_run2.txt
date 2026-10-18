@@ -1,0 +1,23 @@
+train windows 8421 (2038 fall), val 4330 (631 fall)
+val loss stopped improving -> early stop (more epochs would only memorise the train set)
+VAL stay-down 0s thr 0.30: recall 36/44 = 82%, false alarms 100 = 173.2/h
+VAL stay-down 0s thr 0.50: recall 37/44 = 84%, false alarms 70 = 121.2/h
+VAL stay-down 0s thr 0.60: recall 36/44 = 82%, false alarms 54 = 93.5/h
+VAL stay-down 0s thr 0.70: recall 37/44 = 84%, false alarms 44 = 76.2/h
+VAL stay-down 0s thr 0.80: recall 35/44 = 80%, false alarms 39 = 67.6/h
+VAL stay-down 0s thr 0.90: recall 29/44 = 66%, false alarms 35 = 60.6/h
+VAL stay-down 0s thr 0.95: recall 25/44 = 57%, false alarms 26 = 45.0/h
+VAL stay-down 0s thr 0.98: recall 19/44 = 43%, false alarms 19 = 32.9/h
+VAL stay-down 5s thr 0.30: recall 34/44 = 77%, false alarms 74 = 128.2/h
+VAL stay-down 5s thr 0.50: recall 33/44 = 75%, false alarms 57 = 98.7/h
+VAL stay-down 5s thr 0.60: recall 33/44 = 75%, false alarms 46 = 79.7/h
+VAL stay-down 5s thr 0.70: recall 33/44 = 75%, false alarms 39 = 67.6/h
+VAL stay-down 5s thr 0.80: recall 31/44 = 70%, false alarms 36 = 62.4/h
+VAL stay-down 5s thr 0.90: recall 29/44 = 66%, false alarms 32 = 55.4/h
+VAL stay-down 5s thr 0.95: recall 25/44 = 57%, false alarms 25 = 43.3/h
+VAL stay-down 5s thr 0.98: recall 19/44 = 43%, false alarms 18 = 31.2/h
+
+TEST rules (rules.yaml, no zones): recall 44/101 = 44%, false alarms 24 = 15.8/h
+TEST model thr 0.98 stay-down 0s: recall 40/101 = 40%, false alarms 23 = 15.2/h
+TEST model thr 0.98 stay-down 5s: recall 37/101 = 37%, false alarms 19 = 12.5/h
+TEST rules OR model+stay-down: recall 50/101 = 50%, false alarms 33 = 21.8/h

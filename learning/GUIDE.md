@@ -122,6 +122,8 @@ A fall is reported by **one of three paths**. They exist because each catches a 
   the hips moving down);
 
 and the person **stays down ≥ `min_down_s` (5 s, tuned)**. Sitting → lying is *not* a fall: that's lying down.
+The drop is judged over the first **`settle_s` (0.5 s)** of lying, not on the first lying frame alone: at 6 fps
+that frame is often caught *mid-fall* (§7 run 10).
 
 **Path B, "floor_drop":** the hips drop **≥ 0.6 body-heights within 1 s**, and the person doesn't stand again for
 `min_down_s`. This catches falls straight toward the camera: the torso stays vertical in the image, so the pose
@@ -139,7 +141,8 @@ box drops ≥ 0.45 body-heights within 1 s while the feet stay put**, and the pe
 also shrinks the box but moves the feet up the image. It costs false alarms where there are no rest zones, so it is
 enabled per camera (`collapse_frac: 0.45` in that camera's rules file) once the sofa and bed are drawn.
 
-**Always:** a fall that starts inside a `kind: rest` zone (bed, sofa) is ignored.
+**Always:** a fall that *ends* inside a `kind: rest` zone (bed, sofa) is ignored. "Ends" = where the person is
+1–3 s after the trigger, because the trigger frame is often mid-fall, swinging past the sofa (§7 run 11).
 
 Other events: `lying_outside_rest` (lying outside bed/sofa for > N s) and `stillness` (moved < 0.15 body-lengths
 for > N s).
@@ -249,6 +252,10 @@ fall, then one box per frame. Three files have no fall lines and are treated as 
   stopped". A person standing at the end stays standing, so it can't invent falls. Lesson: **know how your test
   data was cut**; a harness that doesn't match how the product runs measures the harness.
 - Lecture_room and Office (60 videos) have no annotations and weren't extracted.
+- **The camera moved.** A contact sheet of every video's first frame (do this for any dataset!) showed Home_01/02
+  were filmed from **3 positions**. Rest zones belong to a camera *view*, not a folder: `learning/le2i_zones/`
+  holds one file per view (coffee, home_A/B/C), and `le2i_labels.py` assigns each video its view (`VIEWS`, read by
+  eye) and copies the zones next to the videos, exactly like a live camera's rules file.
 
 ---
 
@@ -257,6 +264,10 @@ fall, then one box per frame. Three files have no fall lines and are treated as 
 **What was not trained:** the neural network. YOLO11-pose came pre-trained from Ultralytics. Training or
 fine-tuning a pose model needs thousands of images with keypoint labels. This dataset has only *time windows*
 ("a fall happens between frames 1083 and 1113"), not boxes or keypoints, so it can't train a pose model.
+
+> **Update:** a small neural network *was* later trained, on keypoint sequences rather than images. That one is
+> real training from scratch, explained step by step in [TRAINING.md](TRAINING.md). Result: about as good as the
+> rules, so it isn't wired in yet.
 
 **What was "trained": the thresholds.** A rules-based detector has a handful of numbers (`min_down_s`,
 `height_ratio`, `vanish_min_aspect`, …). Choosing them from labelled data is the same idea as training: fit
@@ -299,6 +310,9 @@ parameters to data. Here there are 4 parameters, not millions.
 | 7 | Same, `--hold 10` (clip end ≠ person got up) | 130 videos | **63/96 (66%)** | 3 (≈ 6/h), alert-level **0** | Pose was fine all along (conf 0.9); the clips were too short for `min_down_s` |
 | 8 | Error analysis of the 33 misses | Le2i | — | — | 16 end **seated/slumped, read as "standing"** · 8 got up within 5 s · 5 lying but missed · 4 not detected |
 | 9 | New Path D "collapse", grid on **tune** (MCFD 01–16 + Le2i Coffee) | tune | 47% → **62%** (frac 0.35) | 3.5/h → 13.8–16.7/h | Score says **off wins**. On Le2i alone +10 falls for +1 FA; on MCFD +6 falls for +10 FA (sofa/armchair, zone-fixable). None of them alert-level |
+| 10 | The 5 "lying but missed": first lying frame is mid-fall (box 0.75 of upright vs threshold 0.7). `settle_s` grid | tune → **test** | tune 91 → 97/195; **test 37 → 44/101** | tune +1, test ±0 | A sampling-rate bug, not a threshold problem: look at the frames |
+| 11 | Rest zones per Le2i camera view; collapse grid again | tune | zones cost 3 falls (trigger frame mid-fall next to a bench) → fixed by judging the zone where the person settles: 97/195 with or without zones | test −1 FA | Zones are a trade-off: they also hide falls *next to* furniture. Path D still loses on MCFD |
+| 12 | **Trained GRU** on keypoint sequences (TRAINING.md), mirror augmentation, threshold on val | **test** | model 35% · rules 44% · rules OR model 49% | 7.9/h · 15.8/h · 17.8/h | ~200 falls: a learned model ties hand-written rules; they make different mistakes |
 
 Findings in plain words:
 1. **Check the data's time base.** One wrong number (fps) made a working system look completely broken.
@@ -358,7 +372,7 @@ sofa > 2 h rules, VLM second opinion, and `scripts/eval_live.py`.
 cd "D:\Autonoetic Edge\ElderCare"
 $env:YOLO_OFFLINE = "true"
 
-# tests (37)
+# tests (39)
 .venv\Scripts\python -m pytest -q
 
 # benchmark: the first run caches YOLO (~1.5 h on the GTX 1650 with the medium model); re-runs take ~1 min
@@ -374,6 +388,9 @@ $env:POSE_MODEL = "models/yolo11m-pose.pt"
 .venv\Scripts\python scripts\le2i_labels.py D:\datasets\le2i
 .venv\Scripts\python scripts\eval_staged.py "D:\datasets\le2i\Home_01\Home_01\Videos" --hold 10 --list
 .venv\Scripts\python scripts\tune_collapse.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i
+
+# train the fall model from scratch (learning/TRAINING.md)
+.venv\Scripts\python scripts\train_fall_model.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i
 
 # your own recordings (learning/STAGED_TEST.md)
 .venv\Scripts\python scripts\eval_staged.py data\staged\session1 --list

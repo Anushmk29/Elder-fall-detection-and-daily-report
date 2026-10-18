@@ -1,0 +1,35 @@
+train windows 8421 (2038 fall), val 4330 (631 fall)
+epoch  1  train loss 0.896  val loss 0.676
+epoch  2  train loss 0.700  val loss 0.616
+epoch  3  train loss 0.609  val loss 0.566
+epoch  4  train loss 0.554  val loss 0.562
+epoch  5  train loss 0.512  val loss 0.574
+epoch  6  train loss 0.488  val loss 0.573
+epoch  7  train loss 0.453  val loss 0.553
+epoch  8  train loss 0.439  val loss 0.498
+epoch  9  train loss 0.419  val loss 0.526
+epoch 10  train loss 0.404  val loss 0.517
+epoch 11  train loss 0.392  val loss 0.481
+epoch 12  train loss 0.385  val loss 0.484
+epoch 13  train loss 0.364  val loss 0.474
+epoch 14  train loss 0.350  val loss 0.477
+epoch 15  train loss 0.350  val loss 0.477
+epoch 16  train loss 0.337  val loss 0.470
+epoch 17  train loss 0.333  val loss 0.481
+epoch 18  train loss 0.326  val loss 0.508
+epoch 19  train loss 0.329  val loss 0.507
+epoch 20  train loss 0.326  val loss 0.499
+epoch 21  train loss 0.349  val loss 0.494
+epoch 22  train loss 0.311  val loss 0.483
+val loss stopped improving -> early stop (more epochs would only memorise the train set)
+VAL thr 0.50: recall 37/44 = 84%, false alarms 70 = 121.2/h
+VAL thr 0.60: recall 36/44 = 82%, false alarms 54 = 93.5/h
+VAL thr 0.70: recall 37/44 = 84%, false alarms 44 = 76.2/h
+VAL thr 0.80: recall 35/44 = 80%, false alarms 39 = 67.6/h
+VAL thr 0.90: recall 29/44 = 66%, false alarms 35 = 60.6/h
+VAL thr 0.95: recall 25/44 = 57%, false alarms 26 = 45.0/h
+VAL thr 0.98: recall 19/44 = 43%, false alarms 19 = 32.9/h
+
+TEST model (thr 0.98): recall 40/101 = 40%, false alarms 23 = 15.2/h
+TEST rules (rules.yaml, no zones): recall 44/101 = 44%, false alarms 24 = 15.8/h
+TEST rules OR model: recall 53/101 = 52%, false alarms 37 = 24.4/h
