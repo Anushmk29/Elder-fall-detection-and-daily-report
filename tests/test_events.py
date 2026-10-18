@@ -88,7 +88,7 @@ def build(samples):
 
 def test_drop_then_vanish_mid_room_is_a_fall():
     s = [sample(t / 6, "standing", STAND_BOX, stand_kp()) for t in range(0, 24)]
-    s += [sample(t / 6, "bending", [430, 500, 600, 700], sit_kp(640)) for t in range(24, 30)]  # box halves, then gone
+    s += [sample(t / 6, "bending", [380, 560, 640, 700], sit_kp(640)) for t in range(24, 30)]  # wide + low, then gone
     res = events.analyze(build(s), {**META, "duration": 40}, RULES)
     fall = [e for e in res["events"] if e["type"] == "fall"]
     assert len(fall) == 1 and fall[0]["how"] == "vanished" and fall[0]["got_up_s"] is None

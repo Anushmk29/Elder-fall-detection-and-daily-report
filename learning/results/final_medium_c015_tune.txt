@@ -1,0 +1,136 @@
+chute01/cam1: falls 0/1  missed at 36s
+chute01/cam2: falls 0/1  missed at 36s
+chute01/cam3: falls 0/1  missed at 36s
+chute01/cam4: falls 0/1  missed at 36s
+chute01/cam5: falls 0/1  missed at 37s
+chute01/cam6: falls 1/1
+chute01/cam7: falls 1/1
+chute01/cam8: falls 1/1
+chute02/cam1: falls 0/1  missed at 13s
+chute02/cam2: falls 0/1  missed at 14s
+chute02/cam3: falls 1/1
+chute02/cam4: falls 0/1  missed at 13s
+chute02/cam5: falls 1/1
+chute02/cam6: falls 0/1  missed at 14s
+chute02/cam7: falls 1/1
+chute02/cam8: falls 1/1
+chute03/cam1: falls 1/1
+chute03/cam2: falls 0/1  missed at 20s
+chute03/cam3: falls 0/1  missed at 20s
+chute03/cam4: falls 0/1  missed at 20s
+chute03/cam5: falls 0/1  missed at 21s
+chute03/cam6: falls 1/1
+chute03/cam7: falls 1/1
+chute03/cam8: falls 1/1
+chute04/cam1: falls 0/2  missed at 12s, 23s
+chute04/cam2: falls 0/2  missed at 12s, 23s
+chute04/cam3: falls 1/2  missed at 23s
+chute04/cam4: falls 1/2  missed at 10s
+chute04/cam5: falls 1/2  missed at 22s
+chute04/cam6: falls 0/2  missed at 12s, 23s
+chute04/cam7: falls 1/2  missed at 23s
+chute04/cam8: falls 1/2  missed at 22s
+chute05/cam1: falls 0/1  missed at 11s
+chute05/cam2: falls 1/1
+chute05/cam3: falls 0/1  missed at 10s
+chute05/cam4: falls 0/1  missed at 11s
+chute05/cam5: falls 0/1  missed at 11s
+chute05/cam6: falls 0/1  missed at 11s
+chute05/cam7: falls 1/1
+chute05/cam8: falls 0/1  missed at 10s
+chute06/cam1: falls 1/1
+chute06/cam2: falls 1/1
+chute06/cam3: falls 1/1
+chute06/cam4: falls 0/1  missed at 22s
+chute06/cam5: falls 0/1  missed at 22s
+chute06/cam6: falls 1/1
+chute06/cam7: falls 0/1  missed at 23s
+chute06/cam8: falls 1/1
+chute07/cam1: falls 0/1  missed at 17s
+chute07/cam2: falls 1/1
+chute07/cam3: falls 1/1
+chute07/cam4: falls 0/1  missed at 16s
+chute07/cam5: falls 0/1  missed at 16s
+chute07/cam6: falls 0/1  missed at 16s
+chute07/cam7: falls 0/1  missed at 16s
+chute07/cam8: falls 1/1
+chute08/cam1: falls 0/1  missed at 12s
+chute08/cam2: falls 0/1  missed at 12s
+chute08/cam3: falls 0/1  missed at 9s
+chute08/cam4: falls 0/1  missed at 12s
+chute08/cam5: falls 0/1  missed at 11s
+chute08/cam6: falls 1/1
+chute08/cam7: falls 0/1  missed at 12s
+chute08/cam8: falls 0/1  missed at 11s
+chute09/cam1: falls 0/1  missed at 21s
+chute09/cam2: falls 1/1
+chute09/cam3: falls 1/1
+chute09/cam4: falls 0/1  missed at 21s
+chute09/cam5: falls 0/1  missed at 21s
+chute09/cam6: falls 1/1
+chute09/cam7: falls 1/1
+chute09/cam8: falls 0/1  missed at 21s
+chute10/cam1: falls 0/1  missed at 17s
+chute10/cam2: falls 1/1
+chute10/cam3: falls 0/1  missed at 18s
+chute10/cam4: falls 0/1  missed at 18s
+chute10/cam5: falls 0/1  missed at 17s
+chute10/cam6: falls 0/1  missed at 17s
+chute10/cam7: falls 1/1
+chute10/cam8: falls 0/1  missed at 17s
+chute11/cam1: falls 1/1
+chute11/cam2: falls 0/1  missed at 16s
+chute11/cam3: falls 0/1  missed at 16s
+chute11/cam4: falls 0/1  missed at 16s
+chute11/cam5: falls 1/1
+chute11/cam6: falls 0/1  missed at 16s
+chute11/cam7: falls 0/1  missed at 16s
+chute11/cam8: falls 1/1
+chute12/cam1: falls 1/1
+chute12/cam2: falls 1/1
+chute12/cam3: falls 0/1  missed at 20s
+chute12/cam4: falls 0/1  missed at 20s
+chute12/cam5: falls 1/1
+chute12/cam6: falls 1/1
+chute12/cam7: falls 0/1  missed at 20s
+chute12/cam8: falls 0/1  missed at 20s
+chute13/cam1: falls 0/1  missed at 28s
+chute13/cam2: falls 0/1  missed at 29s
+chute13/cam3: falls 0/1  missed at 28s
+chute13/cam4: falls 1/1
+chute13/cam5: falls 1/1  FALSE ALARM at 16s
+chute13/cam6: falls 0/1  missed at 28s
+chute13/cam7: falls 1/1  FALSE ALARM at 17s
+chute13/cam8: falls 1/1  FALSE ALARM at 16s
+chute14/cam1: falls 0/1  missed at 35s
+chute14/cam2: falls 0/1  missed at 34s
+chute14/cam3: falls 0/1  missed at 34s
+chute14/cam4: falls 0/1  missed at 33s
+chute14/cam5: falls 0/1  missed at 34s  FALSE ALARM at 20s
+chute14/cam6: falls 1/1
+chute14/cam7: falls 1/1
+chute14/cam8: falls 1/1
+chute15/cam1: falls 0/1  missed at 26s
+chute15/cam2: falls 0/1  missed at 26s
+chute15/cam3: falls 1/1
+chute15/cam4: falls 0/1  missed at 26s
+chute15/cam5: falls 0/1  missed at 26s
+chute15/cam6: falls 0/1  missed at 26s
+chute15/cam7: falls 0/1  missed at 26s
+chute15/cam8: falls 0/1  missed at 25s
+chute16/cam1: falls 0/1  missed at 31s
+chute16/cam2: falls 0/1  missed at 31s
+chute16/cam3: falls 0/1  missed at 30s
+chute16/cam4: falls 0/1  missed at 30s
+chute16/cam5: falls 0/1  missed at 30s
+chute16/cam6: falls 0/1  missed at 30s
+chute16/cam7: falls 0/1  missed at 30s
+chute16/cam8: falls 0/1  missed at 30s
+
+clips 128, video 1.24 h
+recall      48/136 = 35%
+per scenario 16/17 = 94% (fall caught by any camera)
+false alarms 4 (3.2 per hour of video)
+  of which FALL ALERTs (nobody up after 30 s): 0 (0.0 per hour)
+false alarms by rule: {'lying': 4}
+detected at +1.0 s (median) from the labelled fall start

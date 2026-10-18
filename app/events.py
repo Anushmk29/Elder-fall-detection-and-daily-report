@@ -62,7 +62,7 @@ def detect_falls(samples, cfg):
                  and (drop >= cfg["hip_drop_frac"] * h
                       or _height(s) <= cfg.get("height_ratio", 0) * max(_height(p) for p in upright)))
         fast = [p for p in upright if s["t"] - p["t"] <= floor_win]
-        floor = floor_frac and fast and max(hip_y(s) - hip_y(p) - floor_frac * _height(p) for p in fast) >= 0
+        floor = floor_frac and fast and max(hip_y(s) - hip_y(p) - floor_frac * _height(p) for p in fast) >= 0             and _height(s) <= cfg.get("floor_height_ratio", 1.0) * max(_height(p) for p in upright)
         if not (lying or floor):
             k += 1
             continue
@@ -74,6 +74,7 @@ def detect_falls(samples, cfg):
             continue
         found.append({"t": s["t"], "t_end": down_until, "drop_s": round(s["t"] - upright[-1]["t"], 1),
                       "zones": s.get("zones", []), "how": "lying" if lying else "floor_drop",
+                      "h_ratio": round(_height(s) / max(_height(p) for p in upright), 2), "hip_drop": round(drop / h, 2),
                       "got_up_s": round(down_until - s["t"], 1) if end is not None else None})
         k = end if end is not None else n
     return found
@@ -97,6 +98,9 @@ def detect_vanish(samples, others, meta, cfg):
         return None
     h = sorted(_height(s) for s in ref)[len(ref) // 2]
     hip0 = sorted(hip_y(s) for s in ref)[len(ref) // 2]
+    aspects = sorted((s["box"][2] - s["box"][0]) / max(_height(s), 1e-6) for s in recent)
+    if aspects[len(aspects) // 2] < cfg.get("vanish_min_aspect", 0):
+        return None  # still an upright shape when last seen: walked behind something, not on the floor
     if not (min(_height(s) for s in recent) <= cfg.get("vanish_height_ratio", 0.8) * h
             or max(hip_y(s) for s in recent) - hip0 >= cfg["hip_drop_frac"] * h):
         return None

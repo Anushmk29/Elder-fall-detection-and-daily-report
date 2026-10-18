@@ -14,8 +14,9 @@ from ultralytics.utils.checks import check_yaml
 from .posture import classify
 
 BASE = Path(__file__).resolve().parent.parent
-MODEL_PATH = os.environ.get("POSE_MODEL", str(BASE / "models" / "yolo11n-pose.pt"))
 DEVICE = os.environ.get("POSE_DEVICE") or (0 if torch.cuda.is_available() else "cpu")
+# medium sees people lying on the floor far better than nano (see learning/GUIDE.md) but needs a GPU for live use
+MODEL_PATH = os.environ.get("POSE_MODEL", str(BASE / "models" / ("yolo11m-pose.pt" if DEVICE != "cpu" else "yolo11n-pose.pt")))
 
 
 def load_model():

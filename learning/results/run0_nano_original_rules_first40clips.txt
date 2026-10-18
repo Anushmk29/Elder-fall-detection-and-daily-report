@@ -1,0 +1,86 @@
+  chute01/cam1.avi: 52 s of video in 10 s
+chute01/cam1: falls 0/1  missed at 36s
+  chute01/cam2.avi: 52 s of video in 7 s
+chute01/cam2: falls 0/1  missed at 36s
+  chute01/cam3.avi: 52 s of video in 6 s
+chute01/cam3: falls 0/1  missed at 36s
+  chute01/cam4.avi: 52 s of video in 6 s
+chute01/cam4: falls 0/1  missed at 36s
+  chute01/cam5.avi: 53 s of video in 7 s
+chute01/cam5: falls 0/1  missed at 37s
+  chute01/cam6.avi: 52 s of video in 7 s
+chute01/cam6: falls 0/1  missed at 36s
+  chute01/cam7.avi: 52 s of video in 7 s
+chute01/cam7: falls 0/1  missed at 36s
+  chute01/cam8.avi: 52 s of video in 8 s
+chute01/cam8: falls 0/1  missed at 36s
+  chute02/cam1.avi: 28 s of video in 4 s
+chute02/cam1: falls 0/1  missed at 13s
+  chute02/cam2.avi: 28 s of video in 4 s
+chute02/cam2: falls 0/1  missed at 14s
+  chute02/cam3.avi: 27 s of video in 4 s
+chute02/cam3: falls 0/1  missed at 12s
+  chute02/cam4.avi: 27 s of video in 4 s
+chute02/cam4: falls 0/1  missed at 13s
+  chute02/cam5.avi: 27 s of video in 4 s
+chute02/cam5: falls 0/1  missed at 13s
+  chute02/cam6.avi: 28 s of video in 4 s
+chute02/cam6: falls 0/1  missed at 14s
+  chute02/cam7.avi: 28 s of video in 5 s
+chute02/cam7: falls 0/1  missed at 14s
+  chute02/cam8.avi: 27 s of video in 5 s
+  chute03/cam1.avi: 31 s of video in 5 s
+chute03/cam1: falls 0/1  missed at 20s
+  chute03/cam2.avi: 31 s of video in 5 s
+chute03/cam2: falls 0/1  missed at 20s
+  chute03/cam3.avi: 31 s of video in 5 s
+chute03/cam3: falls 0/1  missed at 20s
+  chute03/cam4.avi: 31 s of video in 5 s
+chute03/cam4: falls 0/1  missed at 20s
+  chute03/cam5.avi: 32 s of video in 5 s
+chute03/cam5: falls 0/1  missed at 21s
+  chute03/cam6.avi: 32 s of video in 5 s
+chute03/cam6: falls 0/1  missed at 20s
+  chute03/cam7.avi: 32 s of video in 5 s
+chute03/cam7: falls 0/1  missed at 20s
+  chute03/cam8.avi: 31 s of video in 5 s
+chute03/cam8: falls 0/1  missed at 20s
+  chute04/cam1.avi: 35 s of video in 5 s
+chute04/cam1: falls 0/2  missed at 12s, 23s
+  chute04/cam2.avi: 35 s of video in 5 s
+chute04/cam2: falls 0/2  missed at 12s, 23s
+  chute04/cam3.avi: 35 s of video in 5 s
+chute04/cam3: falls 0/2  missed at 12s, 23s
+  chute04/cam4.avi: 33 s of video in 5 s
+chute04/cam4: falls 0/2  missed at 10s, 20s
+  chute04/cam5.avi: 35 s of video in 5 s
+chute04/cam5: falls 0/2  missed at 12s, 22s
+  chute04/cam6.avi: 35 s of video in 5 s
+chute04/cam6: falls 0/2  missed at 12s, 23s
+  chute04/cam7.avi: 35 s of video in 5 s
+chute04/cam7: falls 1/2  missed at 23s
+  chute04/cam8.avi: 34 s of video in 6 s
+chute04/cam8: falls 1/2  missed at 22s
+  chute05/cam1.avi: 26 s of video in 4 s
+chute05/cam1: falls 0/1  missed at 11s
+  chute05/cam2.avi: 26 s of video in 4 s
+chute05/cam2: falls 0/1  missed at 11s
+  chute05/cam3.avi: 25 s of video in 4 s
+chute05/cam3: falls 0/1  missed at 10s
+  chute05/cam4.avi: 25 s of video in 4 s
+chute05/cam4: falls 0/1  missed at 11s
+  chute05/cam5.avi: 26 s of video in 4 s
+chute05/cam5: falls 0/1  missed at 11s
+  chute05/cam6.avi: 26 s of video in 4 s
+chute05/cam6: falls 0/1  missed at 11s
+  chute05/cam7.avi: 26 s of video in 4 s
+  chute05/cam8.avi: 25 s of video in 4 s
+chute05/cam8: falls 0/1  missed at 10s
+  chute06/cam1.avi: 42 s of video in 7 s
+chute06/cam1: falls 0/1  missed at 19s
+  chute06/cam2.avi: 45 s of video in 7 s
+chute06/cam2: falls 0/1  missed at 23s
+  chute06/cam3.avi: 45 s of video in 7 s
+chute06/cam3: falls 0/1  missed at 23s
+  chute06/cam4.avi: 45 s of video in 6 s
+chute06/cam4: falls 0/1  missed at 22s

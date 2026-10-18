@@ -1,0 +1,11 @@
+best on TUNE split (chute01-16):
+  score +0.191  recall 35%  false alarms   3.2/h  {'min_down_s': 5.0, 'vanish_min_aspect': 1.2, 'floor_height_ratio': 1.0, 'height_ratio': 0.7}
+  score +0.191  recall 35%  false alarms   3.2/h  {'min_down_s': 5.0, 'vanish_min_aspect': 1.2, 'floor_height_ratio': 0.8, 'height_ratio': 0.7}
+  score +0.184  recall 35%  false alarms   3.2/h  {'min_down_s': 5.0, 'vanish_min_aspect': 1.2, 'floor_height_ratio': 1.0, 'height_ratio': 0.6}
+  score +0.184  recall 35%  false alarms   3.2/h  {'min_down_s': 5.0, 'vanish_min_aspect': 1.2, 'floor_height_ratio': 0.8, 'height_ratio': 0.6}
+  score +0.173  recall 38%  false alarms   4.0/h  {'min_down_s': 5.0, 'vanish_min_aspect': 0.9, 'floor_height_ratio': 1.0, 'height_ratio': 0.7}
+  score +0.173  recall 38%  false alarms   4.0/h  {'min_down_s': 5.0, 'vanish_min_aspect': 0.9, 'floor_height_ratio': 0.8, 'height_ratio': 0.7}
+  score +0.165  recall 37%  false alarms   4.0/h  {'min_down_s': 5.0, 'vanish_min_aspect': 0.9, 'floor_height_ratio': 1.0, 'height_ratio': 0.6}
+  score +0.165  recall 37%  false alarms   4.0/h  {'min_down_s': 5.0, 'vanish_min_aspect': 0.9, 'floor_height_ratio': 0.8, 'height_ratio': 0.6}
+TEST split (chute17-24, never tuned on) with current rules.yaml: recall 17/64 = 27%, false alarms 23 = 19.5/h
+TEST split (chute17-24, never tuned on) with best: recall 17/64 = 27%, false alarms 23 = 19.5/h

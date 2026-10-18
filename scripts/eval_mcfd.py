@@ -25,6 +25,7 @@ from app import events, perception, pipeline, tracks  # noqa: E402
 from app.posture import classify  # noqa: E402
 
 FPS = 30.0
+TUNE_LAST = 16  # chute01-16 are for tuning rules; chute17-24 (incl. the no-fall chute24) are held out for testing
 WINDOW_PAD = (2.0, 4.0)  # seconds before / after a labelled window that still count as that fall
 CACHE_ROOT = pipeline.DATA_DIR / "mcfd_cache"  # one folder per pose model + detection confidence
 
@@ -81,6 +82,8 @@ def main():
     ap.add_argument("--only", help="e.g. chute20")
     ap.add_argument("--list", action="store_true", help="print every clip, not just misses and false alarms")
     ap.add_argument("--cached", action="store_true", help="only clips already in the cache (no YOLO)")
+    ap.add_argument("--split", choices=["tune", "test", "all"], default="all",
+                    help="tune = chute01-16 (adjust rules on these), test = chute17-24 (only to report on)")
     a = ap.parse_args()
 
     root = Path(a.root)
@@ -90,12 +93,17 @@ def main():
     meta_extra = {"clock_start": 0}
 
     falls_total = hits = false_alarms = 0
+    fa_by = defaultdict(int)  # which rule produced each false alarm
+    fa_alert = 0  # false alarms that would reach the family: still down after live.no_recovery_s
     seconds = 0.0
     delays, rows = [], []
+    scenario = {}  # (chute, fall index) -> caught by any camera
     for video in sorted((root / "dataset" / "dataset").glob("chute*/cam*.avi")):
         if a.only and video.parent.name != a.only:
             continue
         chute, cam = int(video.parent.name[5:]), int(video.stem[3:])
+        if (a.split == "tune" and chute > TUNE_LAST) or (a.split == "test" and chute <= TUNE_LAST):
+            continue
         if a.cached and not (cache_dir(rules) / f"{video.parent.name}_{video.stem}.json.gz").exists():
             continue
         frames, meta = load_frames(video, rules)
@@ -109,9 +117,15 @@ def main():
             k = next((n for n, (s, t) in enumerate(wins) if s - WINDOW_PAD[0] <= e["t"] <= t + WINDOW_PAD[1]), None)
             if k is None:
                 fa.append(e["t"])
+                fa_by[e.get("how", "?")] += 1
+                no_rec = rules.get("live", {}).get("no_recovery_s", 30)
+                if (e["got_up_s"] or meta["duration"] - e["t"]) >= no_rec:
+                    fa_alert += 1
             elif k not in matched:
                 matched.add(k)
                 delays.append(e["t"] - wins[k][0])
+        for n in range(len(wins)):
+            scenario[(chute, n)] = scenario.get((chute, n), False) or n in matched
         falls_total += len(wins)
         hits += len(matched)
         false_alarms += len(fa)
@@ -125,7 +139,13 @@ def main():
 
     print(f"\nclips {len(rows)}, video {seconds / 3600:.2f} h")
     print(f"recall      {hits}/{falls_total} = {hits / max(falls_total, 1):.0%}")
+    caught = sum(scenario.values())
+    print(f"per scenario {caught}/{len(scenario)} = {caught / max(len(scenario), 1):.0%} (fall caught by any camera)")
     print(f"false alarms {false_alarms} ({false_alarms / max(seconds / 3600, 1e-9):.1f} per hour of video)")
+    print(f"  of which FALL ALERTs (nobody up after {rules.get('live', {}).get('no_recovery_s', 30)} s): {fa_alert} "
+          f"({fa_alert / max(seconds / 3600, 1e-9):.1f} per hour)")
+    if fa_by:
+        print("false alarms by rule:", dict(fa_by))
     if delays:
         delays.sort()
         print(f"detected at {delays[len(delays) // 2]:+.1f} s (median) from the labelled fall start")
