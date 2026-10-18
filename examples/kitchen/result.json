@@ -1,0 +1,141 @@
+{
+ "app": "eldercare",
+ "title": "Cooking together in the kitchen",
+ "created": 1792229601,
+ "duration": 12.01,
+ "video": "annotated.mp4",
+ "poster": "poster.jpg",
+ "clock_start": "09:00:00",
+ "people": [
+  {
+   "id": 1,
+   "label": "Resident",
+   "role": "resident",
+   "visible_s": 12.0,
+   "minutes": {
+    "active": 0.2
+   },
+   "zones": {
+    "Kitchen": 12.0
+   }
+  },
+  {
+   "id": 2,
+   "label": "Visitor/Caregiver",
+   "role": "visitor",
+   "visible_s": 12.0,
+   "minutes": {
+    "active": 0.2
+   },
+   "zones": {
+    "Kitchen": 12.0
+   }
+  }
+ ],
+ "events": [],
+ "timeline": [
+  {
+   "who": "Resident",
+   "zone": "Kitchen",
+   "start": 0.0,
+   "end": 11.845
+  },
+  {
+   "who": "Visitor/Caregiver",
+   "zone": "Kitchen",
+   "start": 0.0,
+   "end": 11.845
+  }
+ ],
+ "glance": [
+  {
+   "label": "Observed",
+   "value": "12 s",
+   "note": "from 09:00:00"
+  },
+  {
+   "label": "Active",
+   "value": "12 s",
+   "note": "standing or walking"
+  },
+  {
+   "label": "Sitting",
+   "value": "0 s"
+  },
+  {
+   "label": "Lying",
+   "value": "0 s"
+  },
+  {
+   "label": "Rooms",
+   "value": "1",
+   "note": "Kitchen"
+  },
+  {
+   "label": "Alerts",
+   "value": "0",
+   "note": "0 fall(s)",
+   "tone": "ok"
+  },
+  {
+   "label": "Visitors",
+   "value": "1"
+  }
+ ],
+ "zones": [
+  {
+   "name": "Kitchen",
+   "kind": "room"
+  }
+ ],
+ "captions": [
+  {
+   "t": 1.0,
+   "clock": "09:00:01",
+   "img": "strip1.jpg",
+   "text": "Resident: standing in Kitchen; Visitor/Caregiver: standing in Kitchen.",
+   "ai": false
+  },
+  {
+   "t": 3.0,
+   "clock": "09:00:03",
+   "img": "strip2.jpg",
+   "text": "Resident: standing in Kitchen; Visitor/Caregiver: standing in Kitchen.",
+   "ai": false
+  },
+  {
+   "t": 5.0,
+   "clock": "09:00:05",
+   "img": "strip3.jpg",
+   "text": "Resident: standing in Kitchen; Visitor/Caregiver: standing in Kitchen.",
+   "ai": false
+  },
+  {
+   "t": 7.01,
+   "clock": "09:00:07",
+   "img": "strip4.jpg",
+   "text": "Resident: standing in Kitchen; Visitor/Caregiver: standing in Kitchen.",
+   "ai": false
+  },
+  {
+   "t": 9.01,
+   "clock": "09:00:09",
+   "img": "strip5.jpg",
+   "text": "Resident: standing in Kitchen; Visitor/Caregiver: standing in Kitchen.",
+   "ai": false
+  },
+  {
+   "t": 11.01,
+   "clock": "09:00:11",
+   "img": "strip6.jpg",
+   "text": "Resident: standing in Kitchen; Visitor/Caregiver: standing in Kitchen.",
+   "ai": false
+  }
+ ],
+ "report": {
+  "text": "Over 12 s the resident was active for 12 s, sitting for 0 s and lying for 0 s. 1 other person(s) were seen.\n\nThings to check:\n- Nothing needed attention in this clip.",
+  "ai": false,
+  "note": "AI text unavailable"
+ },
+ "description": "Stock footage: Mike Jones on Pexels (8806250). The resident cooks with a visitor."
+}

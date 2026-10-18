@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Batch review · ElderCare Vision</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">ElderCare <span>Vision</span></a>
+  <span class="pill">Batch review · local only</span>
+</header>
+<main>
+  <div class="result-head">
+    <h1>Batch review</h1>
+    <span class="muted">Results from <code>scripts/batch_eval.py</code>, refreshed every 15 s</span>
+  </div>
+
+  <section class="card">
+    <h2>Progress</h2>
+    <div class="batch-stats" id="overall"></div>
+    <div id="todo"></div>
+  </section>
+
+  <section class="card" id="player" hidden>
+    <div class="report-head"><h2 id="p-title"></h2><a id="p-open" href="#">Open full result →</a></div>
+    <video id="p-video" controls playsinline preload="metadata"></video>
+    <div class="batch-stats" id="p-marks"></div>
+  </section>
+
+  <section>
+    <div class="report-head">
+      <h2>Clips</h2>
+      <label class="muted">Show
+        <select id="filter">
+          <option value="all">all clips</option>
+          <option value="to review">to review</option>
+          <option value="problems">missed + false alarms</option>
+          <option value="not processed">not processed yet</option>
+          <option value="detected">fall detected</option>
+        </select></label>
+    </div>
+    <div id="groups"><p class="muted">Loading…</p></div>
+  </section>
+
+  <section class="card">
+    <h2>History</h2>
+    <div id="history"></div>
+  </section>
+</main>
+<script src="/static/batch.js"></script>
+</body>
+</html>

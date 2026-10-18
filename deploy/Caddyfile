@@ -1,0 +1,11 @@
+elder.{$DOMAIN} {
+	encode gzip
+	request_body {
+		max_size 110MB
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+	reverse_proxy app:8000
+}

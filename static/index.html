@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ElderCare Vision</title>
+<meta name="description" content="Offline video analysis demo: falls, rooms and daily activity for older people living at home.">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">ElderCare <span>Vision</span></a>
+  <span class="pill">Offline demo</span>
+</header>
+<main>
+  <section class="hero">
+    <div>
+      <p class="eyebrow">AI Summit demo · privacy-first video understanding</p>
+      <h1>Know their day went well, without watching hours of video.</h1>
+      <p class="lede">Each clip is analysed on our own server. A small pose model finds people and how they are positioned,
+        simple rules you can read spot falls, long lying and time in each room, and a language model writes a short note
+        for family and caregivers.</p>
+    </div>
+    <ol class="steps">
+      <li><b>Pose</b>17 body points per person, six times a second, on CPU.</li>
+      <li><b>Rules</b>Falls, lying outside bed or sofa, long stillness, time per room.</li>
+      <li><b>Summary</b>A plain-language daily note with things to check.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+    <div id="gallery" class="gallery"><p class="muted">Loading…</p></div>
+  </section>
+
+  <section>
+    <form id="form" class="card upload">
+      <h2>Try your own clip</h2>
+      <p class="muted">MP4, MOV or WebM, up to <span data-max-seconds>60</span> seconds and <span data-max-mb>100</span> MB.
+        Processing runs on CPU and usually takes under a minute.</p>
+      <label class="drop" id="drop">
+        <input type="file" name="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" required>
+        <span id="fname">Choose a video, or drop it here</span>
+      </label>
+      <label class="check"><input type="checkbox" name="consent" value="yes" required>
+        <span>Everyone in this clip has agreed to it being analysed. I understand it is processed on this server and
+          deleted after 24 hours.</span></label>
+      <label class="field" id="passwrap" hidden>Demo passcode
+        <input type="password" name="passcode" autocomplete="off"></label>
+      <button id="go">Analyse clip</button>
+      <div id="status" class="status" hidden><div class="bar"><i></i></div><p></p></div>
+    </form>
+  </section>
+</main>
+<footer>Research demo, not a medical device. Uploads are deleted after 24 hours and never listed publicly.</footer>
+<script src="/static/index.js"></script>
+</body>
+</html>

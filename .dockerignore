@@ -1,0 +1,9 @@
+.venv
+data
+videos
+models
+tests
+**/__pycache__
+.pytest_cache
+.env
+deploy

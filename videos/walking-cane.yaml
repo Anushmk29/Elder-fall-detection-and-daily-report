@@ -1,0 +1,3 @@
+zones:
+  - {name: Yard, kind: room, polygon: [[0, 0], [1, 0], [1, 1], [0, 1]]}
+clock_start: "07:45:00"

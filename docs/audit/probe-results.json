@@ -1,0 +1,299 @@
+{
+  "fall_inside_rest_zone": [
+    {
+      "type": "fall",
+      "severity": "alert",
+      "t": 4.0,
+      "t_end": 10.0,
+      "who": "Resident",
+      "banner": "FALL DETECTED \u00b7 Resident",
+      "title": "Fall detected",
+      "detail": "Resident went from upright to lying in under 2 s and got up in 6 s.",
+      "id": 1,
+      "clock": "00:00:04",
+      "thumb": "ev1.jpg"
+    }
+  ],
+  "bending_to_lying_fall": [],
+  "recovered_fall": [
+    {
+      "type": "fall",
+      "severity": "alert",
+      "t": 4.0,
+      "t_end": 10.0,
+      "who": "Resident",
+      "banner": "FALL DETECTED \u00b7 Resident",
+      "title": "Fall detected",
+      "detail": "Resident went from upright to lying in under 2 s and got up in 6 s.",
+      "id": 1,
+      "clock": "00:00:04",
+      "thumb": "ev1.jpg"
+    }
+  ],
+  "unrecovered_fall": [
+    {
+      "type": "fall",
+      "severity": "alert",
+      "t": 4.0,
+      "t_end": 27.833333333333332,
+      "who": "Resident",
+      "banner": "FALL DETECTED \u00b7 Resident",
+      "title": "Fall detected",
+      "detail": "Resident went from upright to lying in under 2 s and had not got up when the clip ended.",
+      "id": 1,
+      "clock": "00:00:04",
+      "thumb": "ev1.jpg"
+    }
+  ],
+  "fall_confirmed_across_16s_detection_gap": [
+    {
+      "t": 4.0,
+      "t_end": 20.0,
+      "drop_s": 0.2,
+      "got_up_s": null
+    }
+  ],
+  "stillness_despite_posture_change": [
+    [
+      0.0,
+      6.833333333333333
+    ]
+  ],
+  "ambiguous_box_no_pose": "standing",
+  "default_upload_zones": [
+    {
+      "name": "Kitchen",
+      "kind": "room",
+      "polygon": [
+        [
+          0,
+          0
+        ],
+        [
+          0.5,
+          0
+        ],
+        [
+          0.5,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "name": "Living room",
+      "kind": "room",
+      "polygon": [
+        [
+          0.5,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          0.5,
+          1
+        ]
+      ]
+    },
+    {
+      "name": "Sofa",
+      "kind": "rest",
+      "polygon": [
+        [
+          0.68,
+          0.5
+        ],
+        [
+          0.98,
+          0.5
+        ],
+        [
+          0.98,
+          0.82
+        ],
+        [
+          0.68,
+          0.82
+        ]
+      ]
+    }
+  ],
+  "empty_tracks_analysis": {
+    "people": [],
+    "events": [],
+    "timeline": [],
+    "glance": [
+      {
+        "label": "Observed",
+        "value": "28 s",
+        "note": "from 00:00:00"
+      },
+      {
+        "label": "Active",
+        "value": "0 s",
+        "note": "standing or walking"
+      },
+      {
+        "label": "Sitting",
+        "value": "0 s"
+      },
+      {
+        "label": "Lying",
+        "value": "0 s"
+      },
+      {
+        "label": "Rooms",
+        "value": "0",
+        "note": "no zones matched"
+      },
+      {
+        "label": "Alerts",
+        "value": "0",
+        "note": "0 fall(s)",
+        "tone": "ok"
+      },
+      {
+        "label": "Visitors",
+        "value": "0"
+      }
+    ],
+    "zones": [
+      {
+        "name": "Kitchen",
+        "kind": "room"
+      },
+      {
+        "name": "Living room",
+        "kind": "room"
+      },
+      {
+        "name": "Sofa",
+        "kind": "rest"
+      }
+    ]
+  },
+  "rejoin_different_sized_people_track_count": 1,
+  "empty_tracks_template": "Over 28 s the resident was active for 0 s, sitting for 0 s and lying for 0 s.\n\nThings to check:\n- Nothing needed attention in this clip.",
+  "api_config": {
+    "passcode": false,
+    "max_mb": 100,
+    "max_seconds": 60
+  },
+  "health": {
+    "ok": true,
+    "queued": 0
+  },
+  "progress_route_status": 404,
+  "security_headers": {
+    "content-type": "text/html; charset=utf-8",
+    "accept-ranges": "bytes",
+    "content-length": "2643",
+    "last-modified": "Sat, 17 Oct 2026 08:14:48 GMT",
+    "etag": "\"a10660af9617db22f26be36f7a8a6bd8\"",
+    "x-content-type-options": "nosniff",
+    "referrer-policy": "no-referrer",
+    "x-robots-tag": "noindex"
+  },
+  "range_request_status": 206,
+  "traversal_status": 404,
+  "debug_media_status": 200,
+  "bad_video_status": 400,
+  "bad_passcode_status": 403,
+  "oversize_status": 413,
+  "contradictory_llm_report_accepted": {
+    "text": "Everything is safe. No fall occurred.",
+    "ai": true,
+    "model": "google/gemini-2.5-flash"
+  },
+  "corrupt_cache_behavior": "JSONDecodeError",
+  "parallel_budget": {
+    "cap": 0.01,
+    "spent": 0.04
+  },
+  "example_schema_checks": [
+    {
+      "example": "kitchen",
+      "missing_required_keys": [
+        "id",
+        "kind",
+        "version",
+        "created_at",
+        "clips",
+        "segments",
+        "zone_segments",
+        "metrics",
+        "ai",
+        "processing",
+        "disclaimer"
+      ],
+      "events": [],
+      "ai": false
+    },
+    {
+      "example": "sofa",
+      "missing_required_keys": [
+        "id",
+        "kind",
+        "version",
+        "created_at",
+        "clips",
+        "segments",
+        "zone_segments",
+        "metrics",
+        "ai",
+        "processing",
+        "disclaimer"
+      ],
+      "events": [],
+      "ai": false
+    },
+    {
+      "example": "synthetic-fall",
+      "missing_required_keys": [
+        "id",
+        "kind",
+        "version",
+        "created_at",
+        "clips",
+        "segments",
+        "zone_segments",
+        "metrics",
+        "ai",
+        "processing",
+        "disclaimer"
+      ],
+      "events": [
+        "fall"
+      ],
+      "ai": false
+    },
+    {
+      "example": "walking-cane",
+      "missing_required_keys": [
+        "id",
+        "kind",
+        "version",
+        "created_at",
+        "clips",
+        "segments",
+        "zone_segments",
+        "metrics",
+        "ai",
+        "processing",
+        "disclaimer"
+      ],
+      "events": [],
+      "ai": false
+    }
+  ]
+}

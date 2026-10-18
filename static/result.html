@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Result · ElderCare Vision</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">ElderCare <span>Vision</span></a>
+  <span class="pill">Offline demo</span>
+</header>
+<main id="main">
+  <div class="result-head">
+    <h1 id="title">Loading…</h1>
+    <span class="muted" id="sub"></span>
+  </div>
+  <div class="layout">
+    <div>
+      <video id="video" controls playsinline preload="metadata"></video>
+      <div class="card timeline">
+        <div class="tl-row"><span class="muted">Events</span><div class="tl-track" id="tl-events"></div></div>
+        <div id="tl-rows"></div>
+        <div class="tl-axis"><span id="tl-start"></span><span id="tl-end"></span></div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+    <aside>
+      <h2>Day at a glance</h2>
+      <div class="tiles" id="tiles"></div>
+    </aside>
+  </div>
+
+  <section>
+    <h2>Alerts</h2>
+    <div class="alerts" id="alerts"></div>
+  </section>
+
+  <section class="card">
+    <div class="report-head"><h2>Daily note for family and caregivers</h2><span id="ai-badge" class="badge"></span></div>
+    <div class="report" id="report"></div>
+  </section>
+
+  <section>
+    <h2>Moments</h2>
+    <div class="moments" id="moments"></div>
+  </section>
+</main>
+<footer>Research demo, not a medical device. Detections come from simple rules and can be wrong.</footer>
+<script src="/static/result.js"></script>
+</body>
+</html>

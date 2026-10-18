@@ -1,0 +1,40 @@
+# ElderCare rules. Zones are polygons in normalised 0-1 image coordinates (x right, y down).
+# Run `python scripts/zone_helper.py <video>` for a first frame with a 10% grid to read coordinates from.
+# The default zones match the synthetic test scene; pass --rules to scripts/process_example.py per camera.
+sample_fps: 6
+imgsz: 640
+clock_start: "09:00:00"   # clock time at the start of a clip (override per camera or with --clock)
+face_blur: false
+
+posture:                  # degrees from vertical / box ratios, see app/posture.py
+  lying_torso: 60
+  lying_aspect: 1.4
+  lying_min_aspect: 0.9
+  bend_torso: 30
+  sit_thigh: 50
+  sit_thigh_ratio: 0.5
+  legs_hidden: standing   # knees out of view: standing (counter); set sitting per camera for tables/sofas
+
+tracks:
+  min_samples: 12         # drop tracks seen for less than ~2 s (passers-by, false positives)
+  smooth_window: 5        # posture majority vote, in samples
+  rejoin_gap_s: 3.0       # re-join a broken ID if it reappears within this gap...
+  rejoin_dist_bl: 1.0     # ...and within this many body lengths (+ running speed x gap) of where it vanished
+  speed_window_s: 1.0
+  walk_bh_per_s: 0.35     # foot-point speed in body heights per second
+  run_bh_per_s: 1.5
+
+fall:
+  window_s: 2.0           # upright -> lying within this time
+  hip_drop_frac: 0.25     # hips drop at least this fraction of body height
+  min_down_s: 2.0         # and stay down at least this long
+
+lying_outside_rest_s: 120
+stillness:
+  min_s: 300              # barely moving for this long
+  move_bl: 0.15           # "barely" = within this many body lengths
+
+zones:
+  - {name: Kitchen, kind: room, polygon: [[0, 0], [0.5, 0], [0.5, 1], [0, 1]]}
+  - {name: Living room, kind: room, polygon: [[0.5, 0], [1, 0], [1, 1], [0.5, 1]]}
+  - {name: Sofa, kind: rest, polygon: [[0.68, 0.5], [0.98, 0.5], [0.98, 0.82], [0.68, 0.82]]}

@@ -1,0 +1,169 @@
+{
+ "app": "eldercare",
+ "title": "Synthetic test: a fall in the kitchen",
+ "created": 1792229383,
+ "duration": 13.0,
+ "video": "annotated.mp4",
+ "poster": "poster.jpg",
+ "clock_start": "09:00:00",
+ "people": [
+  {
+   "id": 1,
+   "label": "Resident",
+   "role": "resident",
+   "visible_s": 13.0,
+   "minutes": {
+    "active": 0.12,
+    "lying": 0.09
+   },
+   "zones": {
+    "Kitchen": 8.0,
+    "Living room": 5.0
+   }
+  },
+  {
+   "id": 2,
+   "label": "Visitor/Caregiver",
+   "role": "visitor",
+   "visible_s": 7.0,
+   "minutes": {
+    "active": 0.12
+   },
+   "zones": {
+    "Living room": 7.0
+   }
+  }
+ ],
+ "events": [
+  {
+   "type": "fall",
+   "severity": "alert",
+   "t": 5.0,
+   "t_end": 11.0,
+   "who": "Resident",
+   "banner": "FALL DETECTED \u00b7 Resident",
+   "title": "Fall detected",
+   "detail": "Resident went from upright to lying in under 2 s and got up in 6 s.",
+   "id": 1,
+   "clock": "09:00:05",
+   "thumb": "ev1.jpg"
+  }
+ ],
+ "timeline": [
+  {
+   "who": "Resident",
+   "zone": "Kitchen",
+   "start": 0.0,
+   "end": 2.36
+  },
+  {
+   "who": "Resident",
+   "zone": "Living room",
+   "start": 2.52,
+   "end": 4.84
+  },
+  {
+   "who": "Resident",
+   "zone": "Kitchen",
+   "start": 5.0,
+   "end": 10.36
+  },
+  {
+   "who": "Resident",
+   "zone": "Living room",
+   "start": 10.52,
+   "end": 12.84
+  },
+  {
+   "who": "Visitor/Caregiver",
+   "zone": "Living room",
+   "start": 0.0,
+   "end": 6.84
+  }
+ ],
+ "glance": [
+  {
+   "label": "Observed",
+   "value": "13 s",
+   "note": "from 09:00:00"
+  },
+  {
+   "label": "Active",
+   "value": "7 s",
+   "note": "standing or walking"
+  },
+  {
+   "label": "Sitting",
+   "value": "0 s"
+  },
+  {
+   "label": "Lying",
+   "value": "5 s"
+  },
+  {
+   "label": "Rooms",
+   "value": "2",
+   "note": "Kitchen, Living room"
+  },
+  {
+   "label": "Alerts",
+   "value": "1",
+   "note": "1 fall(s)",
+   "tone": "alert"
+  },
+  {
+   "label": "Visitors",
+   "value": "1"
+  }
+ ],
+ "zones": [
+  {
+   "name": "Kitchen",
+   "kind": "room"
+  },
+  {
+   "name": "Living room",
+   "kind": "room"
+  },
+  {
+   "name": "Sofa",
+   "kind": "rest"
+  }
+ ],
+ "captions": [
+  {
+   "t": 1.3,
+   "clock": "09:00:01",
+   "img": "strip1.jpg",
+   "text": "Resident: walking in Kitchen; Visitor/Caregiver: standing in Living room.",
+   "ai": false
+  },
+  {
+   "t": 5.0,
+   "clock": "09:00:05",
+   "img": "strip2.jpg",
+   "text": "Resident: lying in Kitchen; Visitor/Caregiver: standing in Living room.",
+   "ai": false
+  },
+  {
+   "t": 9.1,
+   "clock": "09:00:09",
+   "img": "strip3.jpg",
+   "text": "Resident: lying in Kitchen.",
+   "ai": false
+  },
+  {
+   "t": 11.7,
+   "clock": "09:00:11",
+   "img": "strip4.jpg",
+   "text": "Resident: standing in Living room.",
+   "ai": false
+  }
+ ],
+ "report": {
+  "text": "Over 13 s the resident was active for 7 s, sitting for 0 s and lying for 5 s. 1 other person(s) were seen.\n\nThings to check:\n- 09:00:05 Fall detected: Resident went from upright to lying in under 2 s and got up in 6 s.",
+  "ai": false,
+  "note": "AI text unavailable"
+ },
+ "description": "Generated test clip: a person walks in, falls, stays down and gets up while a visitor waits by the sofa."
+}

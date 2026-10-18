@@ -1,0 +1,122 @@
+{
+ "app": "eldercare",
+ "title": "An afternoon on the sofa",
+ "created": 1792229612,
+ "duration": 10.32,
+ "video": "annotated.mp4",
+ "poster": "poster.jpg",
+ "clock_start": "15:20:00",
+ "people": [
+  {
+   "id": 1,
+   "label": "Resident",
+   "role": "resident",
+   "visible_s": 10.4,
+   "minutes": {
+    "active": 0.07,
+    "sitting": 0.1
+   },
+   "zones": {
+    "Living room": 10.4,
+    "Sofa": 10.4
+   }
+  }
+ ],
+ "events": [],
+ "timeline": [
+  {
+   "who": "Resident",
+   "zone": "Living room",
+   "start": 0.0,
+   "end": 10.2
+  }
+ ],
+ "glance": [
+  {
+   "label": "Observed",
+   "value": "10 s",
+   "note": "from 15:20:00"
+  },
+  {
+   "label": "Active",
+   "value": "4 s",
+   "note": "standing or walking"
+  },
+  {
+   "label": "Sitting",
+   "value": "6 s"
+  },
+  {
+   "label": "Lying",
+   "value": "0 s"
+  },
+  {
+   "label": "Rooms",
+   "value": "1",
+   "note": "Living room"
+  },
+  {
+   "label": "Alerts",
+   "value": "0",
+   "note": "0 fall(s)",
+   "tone": "ok"
+  },
+  {
+   "label": "Visitors",
+   "value": "0"
+  }
+ ],
+ "zones": [
+  {
+   "name": "Living room",
+   "kind": "room"
+  },
+  {
+   "name": "Sofa",
+   "kind": "rest"
+  }
+ ],
+ "captions": [
+  {
+   "t": 1.03,
+   "clock": "15:20:01",
+   "img": "strip1.jpg",
+   "text": "Resident: standing in Living room.",
+   "ai": false
+  },
+  {
+   "t": 3.1,
+   "clock": "15:20:03",
+   "img": "strip2.jpg",
+   "text": "Resident: sitting in Living room.",
+   "ai": false
+  },
+  {
+   "t": 5.16,
+   "clock": "15:20:05",
+   "img": "strip3.jpg",
+   "text": "Resident: sitting in Living room.",
+   "ai": false
+  },
+  {
+   "t": 7.22,
+   "clock": "15:20:07",
+   "img": "strip4.jpg",
+   "text": "Resident: sitting in Living room.",
+   "ai": false
+  },
+  {
+   "t": 9.29,
+   "clock": "15:20:09",
+   "img": "strip5.jpg",
+   "text": "Resident: standing in Living room.",
+   "ai": false
+  }
+ ],
+ "report": {
+  "text": "Over 10 s the resident was active for 4 s, sitting for 6 s and lying for 0 s.\n\nThings to check:\n- Nothing needed attention in this clip.",
+  "ai": false,
+  "note": "AI text unavailable"
+ },
+ "description": "Stock footage: Kampus Production on Pexels (8871841). Quiet sitting time."
+}

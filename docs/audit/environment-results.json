@@ -1,0 +1,105 @@
+{
+  "python": "3.11.6",
+  "platform": "Windows-10-10.0.26300-SP0",
+  "model_sha256": "869e83fcdffdc7371fa4e34cd8e51c838cc729571d1635e5141e3075e9319dc0",
+  "pip_check": "No broken requirements found.",
+  "examples": [
+    {
+      "slug": "kitchen",
+      "video": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 404,
+            "height": 720,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "15/1"
+          }
+        ],
+        "format": {
+          "duration": "12.000000",
+          "size": "327932"
+        }
+      }
+    },
+    {
+      "slug": "sofa",
+      "video": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "15/1"
+          }
+        ],
+        "format": {
+          "duration": "10.333333",
+          "size": "580272"
+        }
+      }
+    },
+    {
+      "slug": "synthetic-fall",
+      "video": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "15/1"
+          }
+        ],
+        "format": {
+          "duration": "13.000000",
+          "size": "453840"
+        }
+      }
+    },
+    {
+      "slug": "walking-cane",
+      "video": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "15/1"
+          }
+        ],
+        "format": {
+          "duration": "18.133333",
+          "size": "3052870"
+        }
+      }
+    }
+  ],
+  "torch_threads_at_import": 6,
+  "real_blank_clip": {
+    "seconds": 46.78,
+    "people": [],
+    "events": [],
+    "report": {
+      "text": "Over 3 s the resident was active for 0 s, sitting for 0 s and lying for 0 s.\n\nThings to check:\n- Nothing needed attention in this clip.",
+      "ai": false,
+      "note": "AI text unavailable"
+    },
+    "outcome": "pipeline returned success"
+  },
+  "torch_threads_after_pipeline": 8,
+  "caption_strip_size": {
+    "width": 2304,
+    "height": 576
+  }
+}

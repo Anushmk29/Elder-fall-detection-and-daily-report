@@ -1,0 +1,11 @@
+.venv/
+data/
+models/
+__pycache__/
+.pytest_cache/
+.env
+videos/*
+!videos/.gitkeep
+*.grid.jpg
+!videos/*.yaml
+cameras.yaml

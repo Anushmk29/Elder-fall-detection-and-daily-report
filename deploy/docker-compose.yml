@@ -1,0 +1,27 @@
+# Run from this folder:  docker compose up -d --build
+services:
+  app:
+    build: ..
+    env_file: ../.env
+    volumes:
+      - app-data:/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+
+  caddy:
+    image: caddy:2.10-alpine
+    env_file: ../.env
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+    depends_on: [app]
+
+volumes:
+  app-data:
+  caddy-data:
+  caddy-config:

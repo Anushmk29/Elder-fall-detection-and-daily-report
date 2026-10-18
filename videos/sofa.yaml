@@ -1,0 +1,5 @@
+zones:
+  - {name: Living room, kind: room, polygon: [[0, 0], [1, 0], [1, 1], [0, 1]]}
+  - {name: Sofa, kind: rest, polygon: [[0, 0.3], [1, 0.3], [1, 1], [0, 1]]}
+clock_start: "15:20:00"
+posture: {legs_hidden: sitting}   # close-up on the sofa

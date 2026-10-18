@@ -1,0 +1,246 @@
+{
+ "app": "eldercare",
+ "title": "Morning walk with a cane",
+ "created": 1792229628,
+ "duration": 18.12,
+ "video": "annotated.mp4",
+ "poster": "poster.jpg",
+ "clock_start": "07:45:00",
+ "people": [
+  {
+   "id": 6,
+   "label": "Resident",
+   "role": "resident",
+   "visible_s": 11.3,
+   "minutes": {
+    "active": 0.18,
+    "sitting": 0.01
+   },
+   "zones": {
+    "Yard": 10.7
+   }
+  },
+  {
+   "id": 1,
+   "label": "Visitor/Caregiver 1",
+   "role": "visitor",
+   "visible_s": 7.2,
+   "minutes": {
+    "active": 0.12
+   },
+   "zones": {
+    "Yard": 7.2
+   }
+  },
+  {
+   "id": 5,
+   "label": "Visitor/Caregiver 2",
+   "role": "visitor",
+   "visible_s": 3.5,
+   "minutes": {
+    "active": 0.06
+   },
+   "zones": {
+    "Yard": 3.5
+   }
+  },
+  {
+   "id": 2,
+   "label": "Visitor/Caregiver 3",
+   "role": "visitor",
+   "visible_s": 3.2,
+   "minutes": {
+    "active": 0.05
+   },
+   "zones": {
+    "Yard": 3.2
+   }
+  },
+  {
+   "id": 4,
+   "label": "Visitor/Caregiver 4",
+   "role": "visitor",
+   "visible_s": 2.8,
+   "minutes": {
+    "active": 0.05
+   },
+   "zones": {
+    "Yard": 2.8
+   }
+  },
+  {
+   "id": 3,
+   "label": "Visitor/Caregiver 5",
+   "role": "visitor",
+   "visible_s": 2.5,
+   "minutes": {
+    "active": 0.04
+   },
+   "zones": {
+    "Yard": 2.2
+   }
+  }
+ ],
+ "events": [],
+ "timeline": [
+  {
+   "who": "Resident",
+   "zone": "Yard",
+   "start": 6.68,
+   "end": 9.0
+  },
+  {
+   "who": "Resident",
+   "zone": "Yard",
+   "start": 9.84,
+   "end": 17.84
+  },
+  {
+   "who": "Visitor/Caregiver 1",
+   "zone": "Yard",
+   "start": 0.0,
+   "end": 7.0
+  },
+  {
+   "who": "Visitor/Caregiver 2",
+   "zone": "Yard",
+   "start": 6.0,
+   "end": 9.52
+  },
+  {
+   "who": "Visitor/Caregiver 3",
+   "zone": "Yard",
+   "start": 4.84,
+   "end": 9.68
+  },
+  {
+   "who": "Visitor/Caregiver 4",
+   "zone": "Yard",
+   "start": 5.52,
+   "end": 8.52
+  },
+  {
+   "who": "Visitor/Caregiver 5",
+   "zone": "Yard",
+   "start": 5.2,
+   "end": 5.36
+  },
+  {
+   "who": "Visitor/Caregiver 5",
+   "zone": "Yard",
+   "start": 5.68,
+   "end": 5.68
+  },
+  {
+   "who": "Visitor/Caregiver 5",
+   "zone": "Yard",
+   "start": 6.0,
+   "end": 7.52
+  }
+ ],
+ "glance": [
+  {
+   "label": "Observed",
+   "value": "18 s",
+   "note": "from 07:45:00"
+  },
+  {
+   "label": "Active",
+   "value": "11 s",
+   "note": "standing or walking"
+  },
+  {
+   "label": "Sitting",
+   "value": "1 s"
+  },
+  {
+   "label": "Lying",
+   "value": "0 s"
+  },
+  {
+   "label": "Rooms",
+   "value": "1",
+   "note": "Yard"
+  },
+  {
+   "label": "Alerts",
+   "value": "0",
+   "note": "0 fall(s)",
+   "tone": "ok"
+  },
+  {
+   "label": "Visitors",
+   "value": "5"
+  }
+ ],
+ "zones": [
+  {
+   "name": "Yard",
+   "kind": "room"
+  }
+ ],
+ "captions": [
+  {
+   "t": 1.13,
+   "clock": "07:45:01",
+   "img": "strip1.jpg",
+   "text": "Visitor/Caregiver 1: standing in Yard.",
+   "ai": false
+  },
+  {
+   "t": 3.4,
+   "clock": "07:45:03",
+   "img": "strip2.jpg",
+   "text": "Visitor/Caregiver 1: standing in Yard.",
+   "ai": false
+  },
+  {
+   "t": 5.66,
+   "clock": "07:45:05",
+   "img": "strip3.jpg",
+   "text": "Visitor/Caregiver 1: standing in Yard; Visitor/Caregiver 3: walking in Yard; Visitor/Caregiver 5: walking in Yard; Visitor/Caregiver 4: standing in Yard; Visitor/Caregiver 2: standing in Yard.",
+   "ai": false
+  },
+  {
+   "t": 7.93,
+   "clock": "07:45:07",
+   "img": "strip4.jpg",
+   "text": "Visitor/Caregiver 3: walking in Yard; Visitor/Caregiver 5: walking in Yard; Visitor/Caregiver 4: walking in Yard; Visitor/Caregiver 2: walking in Yard; Resident: standing in Yard.",
+   "ai": false
+  },
+  {
+   "t": 10.19,
+   "clock": "07:45:10",
+   "img": "strip5.jpg",
+   "text": "Visitor/Caregiver 3: walking in Yard; Resident: standing in Yard.",
+   "ai": false
+  },
+  {
+   "t": 12.46,
+   "clock": "07:45:12",
+   "img": "strip6.jpg",
+   "text": "Resident: standing in Yard.",
+   "ai": false
+  },
+  {
+   "t": 14.72,
+   "clock": "07:45:14",
+   "img": "strip7.jpg",
+   "text": "Resident: standing in Yard.",
+   "ai": false
+  },
+  {
+   "t": 16.99,
+   "clock": "07:45:16",
+   "img": "strip8.jpg",
+   "text": "Resident: standing in Yard.",
+   "ai": false
+  }
+ ],
+ "report": {
+  "text": "Over 18 s the resident was active for 11 s, sitting for 1 s and lying for 0 s. 5 other person(s) were seen.\n\nThings to check:\n- Nothing needed attention in this clip.",
+  "ai": false,
+  "note": "AI text unavailable"
+ },
+ "description": "Stock footage: Mike Sangma on Pexels (5770176). A walk outdoors; villagers passing by are counted as visitors."
+}
