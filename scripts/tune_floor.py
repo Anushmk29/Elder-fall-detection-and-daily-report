@@ -22,11 +22,8 @@ PROXY_S, HOLD_S, FLOOR_S = 10, 70, 60
 
 
 def floor_runs(frames, meta, rules, min_s):
-    out = []
-    for e in events.analyze(tracks.build(frames, meta, rules), meta, {**rules, "lying_outside_rest_s": min_s})["events"]:
-        if e["type"] == "lying_outside_rest":
-            out.append(e)
-    return out
+    found = events.analyze(tracks.build(frames, meta, rules), meta, {**rules, "lying_outside_rest_s": min_s})["events"]
+    return [e for e in found if e["type"] == "lying_outside_rest"]
 
 
 def load(mcfd, le2i, base):
@@ -62,16 +59,16 @@ def main():
     grid = json.loads(sys.argv[3]) if len(sys.argv) > 3 else [0, 0.4, 0.5, 0.55, 0.6, 0.65]
     base = pipeline.load_rules()
     data = load(sys.argv[1], sys.argv[2], base)
-    best = None
+    scores = {}
     for ratio in grid:
         c, n, f, fh = measure(data["tune"], {**base, "floor_low_ratio": ratio})
         score = c / n - 0.5 * fh / 10
         print(f"  floor_low_ratio {ratio}: on-the-floor alert {c}/{n} = {c / n:.0%}, false {f} = {fh:.1f}/h, "
               f"score {score:.3f}", flush=True)
-        best = max(best or (score, -ratio), (score, -ratio))  # ties: the lower (more cautious) ratio
-    best = (best[0], -best[1])
-    print("best on TUNE:", best[1])
-    for label, ratio in (("off", 0), ("best", best[1])):
+        scores[ratio] = score
+    best = min(grid, key=lambda r: (-scores[r], r))  # ties: the lower (more cautious) ratio
+    print("best on TUNE:", best)
+    for label, ratio in (("off", 0), ("best", best)):
         c, n, f, fh = measure(data["test"], {**base, "floor_low_ratio": ratio}, show=ratio != 0)
         print(f"TEST (MCFD chute17-24 + Le2i Home, never tuned on) {label} ({ratio}): {c}/{n} = {c / n:.0%}, "
               f"false {f} = {fh:.1f}/h")

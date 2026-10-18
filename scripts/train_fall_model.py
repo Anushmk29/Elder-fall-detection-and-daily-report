@@ -27,7 +27,7 @@ sys.path.insert(0, str(BASE / "scripts"))
 import eval_mcfd as ev  # noqa: E402
 import eval_staged as es  # noqa: E402
 import tune_collapse as tc  # noqa: E402
-from app import perception, pipeline, tracks  # noqa: E402
+from app import pipeline, tracks  # noqa: E402
 
 FPS = 6
 WIN = 18            # 3 s window
@@ -169,14 +169,11 @@ def evaluate(clips, found):
 
 def urfall(folder, base):
     """UR Fall clips in tc.load's format, last frame held 10 s like Le2i (the clips stop right after the fall)."""
-    cache = (pipeline.DATA_DIR / "staged_cache" / f"{Path(perception.MODEL_PATH).stem}-c{base.get('det_conf', 0.25)}"
-             / f"{folder.parent.name}_{folder.name}")
     out = []
-    for name, rows in es.read_labels(folder / "labels.csv").items():
-        frames, meta = ev.load_frames(folder / name, base, cache)
+    for _, frames, meta, rows, _ in tc.el.staged_clips(folder, base):
         es.hold(frames, meta, 10, base["sample_fps"])
         meta["clock_start"] = 0
-        out.append((frames, meta, [r for r in rows if r["kind"] != "none"], []))
+        out.append((frames, meta, rows, []))
     return out
 
 

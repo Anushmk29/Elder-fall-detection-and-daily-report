@@ -15,9 +15,10 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE))
 sys.path.insert(0, str(BASE / "scripts"))
+import eval_live as el  # noqa: E402
 import eval_mcfd as ev  # noqa: E402
 import eval_staged as es  # noqa: E402
-from app import perception, pipeline  # noqa: E402
+from app import pipeline  # noqa: E402
 
 GRID = {"collapse_frac": [0, 0.35, 0.4, 0.45, 0.5, 0.55], "collapse_window_s": [1.0, 1.5]}
 TUNE_ROOMS, TEST_ROOMS = ("Coffee_room_01", "Coffee_room_02"), ("Home_01", "Home_02")
@@ -33,14 +34,10 @@ def load(mcfd_root, le2i_root, base, zones_on=True):
         rows = [{"kind": "fall", "start_s": a, "end_s": b, "note": ""} for a, b in labels.get((chute, cam), [])]
         data["tune" if chute <= ev.TUNE_LAST else "test"].append((frames, meta, rows, []))  # no zones: furniture moves
     for room in TUNE_ROOMS + TEST_ROOMS:
-        folder = Path(le2i_root) / room / room / "Videos"
-        cache = (pipeline.DATA_DIR / "staged_cache" / f"{Path(perception.MODEL_PATH).stem}-c{base.get('det_conf', 0.25)}"
-                 / f"{room}_Videos")
-        for name, rows in es.read_labels(folder / "labels.csv").items():
-            frames, meta = ev.load_frames(folder / name, base, cache)
+        for _, frames, meta, rows, zf in el.staged_clips(Path(le2i_root) / room / room / "Videos", base):
             es.hold(frames, meta, 10, base["sample_fps"])
-            zones = pipeline.load_rules(folder / f"{rows[0]['camera']}.yaml")["zones"] if zones_on else []
-            data["tune" if room in TUNE_ROOMS else "test"].append((frames, meta, [r for r in rows if r["kind"] != "none"], zones))
+            zones = pipeline.load_rules(zf)["zones"] if zones_on else []
+            data["tune" if room in TUNE_ROOMS else "test"].append((frames, meta, rows, zones))
     for clips in data.values():
         for _, meta, _, _ in clips:
             meta["clock_start"] = 0

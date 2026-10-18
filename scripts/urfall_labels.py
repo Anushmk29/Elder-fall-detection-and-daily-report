@@ -14,7 +14,7 @@ The csv labels every frame: -1 not lying, 0 falling (or lying down), 1 lying (1-
 import csv
 import shutil
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 import cv2
@@ -73,10 +73,7 @@ def main():
         w.writerows(rows)
     for room in {r[1] for r in rows}:
         shutil.copy(ZONES / f"{room}.yaml", videos / f"{room}.yaml")
-    kinds = defaultdict(int)
-    for r in rows:
-        kinds[r[3]] += 1
-    print(f"{videos}: {dict(kinds)}, rooms {sorted({r[1] for r in rows})}")
+    print(f"{videos}: {dict(Counter(r[3] for r in rows))}, rooms {sorted({r[1] for r in rows})}")
 
 
 if __name__ == "__main__":
