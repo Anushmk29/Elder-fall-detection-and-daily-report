@@ -1,0 +1,21 @@
+# ElderCare -> phone. The ElderCare app POSTs every alert/warning to this webhook (see app/notify.py).
+# After pairing the Home Assistant Companion app, replace mobile_app_YOUR_PHONE with your phone's notify service
+# (Developer tools -> Actions -> search "notify.mobile_app").
+- id: eldercare_alert_to_phone
+  alias: ElderCare alert to phone
+  mode: queued
+  triggers:
+    - trigger: webhook
+      webhook_id: eldercare
+      allowed_methods: [POST]
+      local_only: true
+  actions:
+    - action: notify.mobile_app_YOUR_PHONE
+      data:
+        title: "{{ trigger.json.title }}"
+        message: "{{ trigger.json.message }}"
+        data:
+          image: "{{ trigger.json.image }}"
+          ttl: 0
+          priority: "{{ 'high' if trigger.json.severity == 'alert' else 'normal' }}"
+          channel: "{{ 'ElderCare alerts' if trigger.json.severity == 'alert' else 'ElderCare' }}"

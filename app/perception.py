@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import cv2
+import torch
 from ultralytics import YOLO
 from ultralytics.trackers.byte_tracker import BYTETracker
 from ultralytics.utils import YAML, IterableSimpleNamespace
@@ -14,15 +15,24 @@ from .posture import classify
 
 BASE = Path(__file__).resolve().parent.parent
 MODEL_PATH = os.environ.get("POSE_MODEL", str(BASE / "models" / "yolo11n-pose.pt"))
+DEVICE = os.environ.get("POSE_DEVICE") or (0 if torch.cuda.is_available() else "cpu")
+
+
+def load_model():
+    return YOLO(MODEL_PATH)
+
+
+def new_tracker():
+    """(tracker, fragment_ids): one per clip or per live camera, never shared."""
+    return BYTETracker(IterableSimpleNamespace(**YAML.load(check_yaml("bytetrack.yaml")))), itertools.count(-1, -1)
 
 
 def analyze(video, rules, progress=lambda f: None):
     """Returns (frames, meta). frames: [{"i", "t", "people": [{"id", "box", "kp", "conf", "posture"}]}]"""
-    model = YOLO(MODEL_PATH)
-    tracker = BYTETracker(IterableSimpleNamespace(**YAML.load(check_yaml("bytetrack.yaml"))))
-    fragment_ids = itertools.count(-1, -1)
+    model = load_model()
+    tracker, fragment_ids = new_tracker()
     cap = cv2.VideoCapture(str(video))
-    src_fps = cap.get(cv2.CAP_PROP_FPS)
+    src_fps = rules.get("source_fps") or cap.get(cv2.CAP_PROP_FPS)  # override: some files lie about their fps
     if not src_fps or math.isnan(src_fps) or src_fps > 240:
         src_fps = 25.0
     total = max(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), 1)
@@ -53,7 +63,7 @@ def _detect(model, tracker, fragment_ids, frame, rules):
     """ByteTrack driven directly (not model.track) so detections it hasn't confirmed are kept too: at 6 fps a
     running person's box often has zero IoU with the last one, and ByteTrack would hide them. Those get a unique
     negative id and tracks.rejoin() stitches them back together."""
-    r = model.predict(frame, imgsz=rules["imgsz"], device="cpu", conf=0.25, verbose=False)[0]
+    r = model.predict(frame, imgsz=rules["imgsz"], device=DEVICE, conf=0.25, verbose=False)[0]
     det = r.boxes.cpu().numpy()
     tracked = tracker.update(det, frame)  # rows: x1, y1, x2, y2, id, score, cls, det_index
     id_of = {int(row[-1]): int(row[4]) for row in tracked}

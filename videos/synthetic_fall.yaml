@@ -1,0 +1,5 @@
+# Zones for the synthetic test scene (scripts/make_test_clip.py).
+zones:
+  - {name: Kitchen, kind: room, polygon: [[0, 0], [0.5, 0], [0.5, 1], [0, 1]]}
+  - {name: Living room, kind: room, polygon: [[0.5, 0], [1, 0], [1, 1], [0.5, 1]]}
+  - {name: Sofa, kind: rest, polygon: [[0.68, 0.5], [0.98, 0.5], [0.98, 0.82], [0.68, 0.82]]}

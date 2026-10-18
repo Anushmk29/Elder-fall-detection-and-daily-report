@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guardian at Home</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">ElderCare <span>Guardian</span></a>
+  <span class="pill" id="status">Starting…</span>
+</header>
+<main>
+  <section class="live-head">
+    <div>
+      <p class="eyebrow">Live at home</p>
+      <h1 id="where">Waiting for cameras…</h1>
+      <p class="muted" id="sub"></p>
+    </div>
+    <a class="button-link" id="report" href="/live/report">Today's report</a>
+  </section>
+
+  <div id="banner" class="live-banner" hidden></div>
+
+  <section>
+    <h2>Cameras</h2>
+    <div id="cams" class="cams"><p class="muted">No cameras yet. Add them to <code>cameras.yaml</code>, or play a
+      recorded clip below.</p></div>
+  </section>
+
+  <section class="live-cols">
+    <div class="card">
+      <h2>Today</h2>
+      <ol id="feed" class="feed"><li class="muted">Nothing yet.</li></ol>
+    </div>
+    <form id="play" class="card">
+      <h2>Play a recording as a camera</h2>
+      <p class="muted">A recorded clip (for example a staged fall) runs in real time through the same rules, so it
+        triggers the same alerts and phone notifications as a live camera.</p>
+      <label class="drop"><input type="file" name="file" accept="video/*" required>
+        <span id="fname">Choose a video</span></label>
+      <label class="field">Room <input name="room" placeholder="Living room" maxlength="40"></label>
+      <button id="go">Play as live camera</button>
+      <p id="playmsg" class="muted"></p>
+    </form>
+  </section>
+</main>
+<footer>Proof of concept, not a medical device. Footage stays on this computer.</footer>
+<script src="/static/live.js"></script>
+</body>
+</html>

@@ -25,6 +25,10 @@ REPORT_PROMPT = (
     "Warm, plain English, no medical diagnosis, no speculation beyond the facts. Format:\n"
     "A 3-5 sentence summary of the day.\n\nThings to check:\n- bullet\n- bullet\n"
     "(1-4 bullets; if nothing needs attention say so in one bullet.)\n\nFacts (JSON):\n{facts}")
+DAILY_NOTE_PROMPT = (
+    "Below is today's automated routine summary for an older person living at home (camera pose detection and "
+    "simple rules; it may contain errors). Write 1-2 warm, plain sentences for their family that mention only what "
+    "is marked ⚠️, or say the day looks normal. No diagnosis, no facts that are not in the summary.\n\n{summary}")
 
 
 class LLM:
@@ -85,6 +89,10 @@ class LLM:
             {"type": "text", "text": CAPTION_PROMPT.format(context=context)},
             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}]}], max_tokens=80)
         return {"text": text, "ai": True} if text else {"text": context[:1].upper() + context[1:] + ".", "ai": False}
+
+    def daily_note(self, summary):
+        """1-2 sentences for the family on top of the rule-based daily summary, or None (no key/cap/failure)."""
+        return self.chat([{"role": "user", "content": DAILY_NOTE_PROMPT.format(summary=summary)}], 150)
 
     def report(self, facts):
         text = self.chat([{"role": "user", "content": REPORT_PROMPT.format(facts=json.dumps(facts, indent=1))}], 500)

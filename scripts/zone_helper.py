@@ -7,9 +7,10 @@ from pathlib import Path
 
 import cv2
 
-video = Path(sys.argv[1])
+src = sys.argv[1]  # a file, a webcam index (0) or a stream URL from cameras.yaml
+video = Path(src) if "://" not in src and not src.isdigit() else Path("camera")
 out = Path(sys.argv[2]) if len(sys.argv) > 2 else video.with_suffix(".grid.jpg")
-ok, frame = cv2.VideoCapture(str(video)).read()
+ok, frame = cv2.VideoCapture(int(src) if src.isdigit() else src).read()
 if not ok:
     sys.exit(f"Could not read a frame from {video}")
 h, w = frame.shape[:2]

@@ -1,7 +1,7 @@
 from conftest import kp_person, sample
 
 from app import events, tracks
-from app.pipeline import load_rules
+from app.pipeline import BASE, load_rules
 
 SQUARE = [[0.2, 0.2], [0.6, 0.2], [0.6, 0.6], [0.2, 0.6]]
 
@@ -15,7 +15,7 @@ def test_point_in_polygon():
 
 
 def test_dwell_time_and_room_timeline():
-    rules = load_rules()
+    rules = load_rules(BASE / "videos" / "synthetic_fall.yaml")
     meta = {"width": 1000, "height": 1000, "fps": 6, "duration": 10, "clock_start": 0}
     kp = kp_person(ankle=(0, 0))
     kp[15][2] = kp[16][2] = 0.0  # no ankles -> foot point = box bottom centre

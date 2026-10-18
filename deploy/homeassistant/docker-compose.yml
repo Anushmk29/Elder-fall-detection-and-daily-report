@@ -1,0 +1,15 @@
+# Home Assistant for the ElderCare live POC (Docker Desktop on Windows).
+#   docker compose -f deploy/homeassistant/docker-compose.yml up -d     ->  http://localhost:8123
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: eldercare-ha
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+    volumes:
+      - ./config:/config
+    environment:
+      - TZ=Asia/Kolkata
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # HA reaches the ElderCare app on the laptop at host.docker.internal:8000

@@ -1,0 +1,15 @@
+# Copy to cameras.yaml (git-ignored: it can contain camera passwords) and start the app; the live engine starts
+# automatically and http://localhost:8000/live shows every camera.
+#
+# source:  0 / 1 ...                        webcam index (laptop camera, USB webcam, Iriun)
+#          http://<phone-ip>:8080/video      Android "IP Webcam" app (Start server; phone on the same Wi-Fi)
+#          rtsp://user:pass@<ip>:554/...     IP/CCTV camera (Tapo: /stream2, Reolink: /h264Preview_01_sub)
+#          videos/clip.mp4                   a recording played as if it were a camera (realtime by default)
+# room:    the room this camera watches; daily report recognises kitchen*, bath*/toilet*/wc, bed* by name
+# rules:   optional per-camera YAML (zones inside the view, posture overrides); read zone coordinates with
+#          python scripts/zone_helper.py <source>
+cameras:
+  - {name: living, source: "http://192.168.1.21:8080/video", room: Living room}
+  - {name: kitchen, source: 0, room: Kitchen}
+  # - {name: hallway, source: "rtsp://user:pass@192.168.1.30:554/stream2", room: Hallway}
+  - {name: demo-fall, source: videos/synthetic_fall.mp4, room: Living room, loop: true}

@@ -131,6 +131,7 @@ def analyze(tracks, meta, rules):
         for f in detect_falls(S, rules["fall"]):
             got_up = f"got up in {f['got_up_s']:.0f} s" if f["got_up_s"] is not None else "had not got up when the clip ended"
             events.append({"type": "fall", "severity": "alert", "t": f["t"], "t_end": f["t_end"], "who": who,
+                           "got_up_s": f["got_up_s"],
                            "banner": f"FALL DETECTED · {who}", "title": "Fall detected",
                            "detail": f"{who} went from upright to lying in under {rules['fall']['window_s']:.0f} s "
                                      f"and {got_up}."})

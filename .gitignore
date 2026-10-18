@@ -9,3 +9,5 @@ videos/*
 *.grid.jpg
 !videos/*.yaml
 cameras.yaml
+deploy/homeassistant/config/*
+!deploy/homeassistant/config/automations.yaml

@@ -1,6 +1,6 @@
 # ElderCare rules. Zones are polygons in normalised 0-1 image coordinates (x right, y down).
 # Run `python scripts/zone_helper.py <video>` for a first frame with a 10% grid to read coordinates from.
-# The default zones match the synthetic test scene; pass --rules to scripts/process_example.py per camera.
+# Zones are per camera: videos/<name>.yaml for examples, `rules:` per camera in cameras.yaml.
 sample_fps: 6
 imgsz: 640
 clock_start: "09:00:00"   # clock time at the start of a clip (override per camera or with --clock)
@@ -34,7 +34,9 @@ stillness:
   min_s: 300              # barely moving for this long
   move_bl: 0.15           # "barely" = within this many body lengths
 
-zones:
-  - {name: Kitchen, kind: room, polygon: [[0, 0], [0.5, 0], [0.5, 1], [0, 1]]}
-  - {name: Living room, kind: room, polygon: [[0.5, 0], [1, 0], [1, 1], [0.5, 1]]}
-  - {name: Sofa, kind: rest, polygon: [[0.68, 0.5], [0.98, 0.5], [0.98, 0.82], [0.68, 0.82]]}
+live:                     # live cameras (cameras.yaml) use these instead of the upload values above
+  no_recovery_s: 30       # fall, then still down this long -> FALL ALERT pushed to the family
+  lying_outside_rest_s: 60
+  stillness_s: 300
+
+zones: []                 # none by default; per camera/clip in its own file (see videos/*.yaml)

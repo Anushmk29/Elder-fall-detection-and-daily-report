@@ -82,7 +82,9 @@ def run(video, out_dir, progress=lambda pct, stage: None, rules=None, clock=None
     facts = {"glance": analysis["glance"], "people": analysis["people"],
              "events": [{k: e[k] for k in ("clock", "severity", "title", "detail")} for e in evts],
              "moments": [{"clock": c["clock"], "text": c["text"]} for c in captions]}
-    report = ai.report(facts)
+    report = ai.report(facts) if analysis["people"] else {  # never reassure about a clip where nobody was seen
+        "text": "Nobody was detected in this clip, so nothing could be checked. Make sure the person is in view of "
+                "the camera and the room is lit.", "ai": False}
 
     result = {"app": "eldercare", "title": title or "Uploaded clip", "created": int(time.time()),
               "duration": meta["duration"], "video": "annotated.mp4", "poster": "poster.jpg",

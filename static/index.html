@@ -10,7 +10,7 @@
 <body>
 <header class="top">
   <a class="brand" href="/">ElderCare <span>Vision</span></a>
-  <span class="pill">Offline demo</span>
+  <a class="pill" href="/live">Live cameras →</a>
 </header>
 <main>
   <section class="hero">
@@ -36,10 +36,10 @@
   <section>
     <form id="form" class="card upload">
       <h2>Try your own clip</h2>
-      <p class="muted">MP4, MOV or WebM, up to <span data-max-seconds>60</span> seconds and <span data-max-mb>100</span> MB.
+      <p class="muted">MP4, MOV, WebM, MKV or AVI, up to <span data-max-seconds>60</span> seconds and <span data-max-mb>100</span> MB.
         Processing runs on CPU and usually takes under a minute.</p>
       <label class="drop" id="drop">
-        <input type="file" name="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" required>
+        <input type="file" name="file" accept="video/*,.mp4,.mov,.webm,.mkv,.avi" required>
         <span id="fname">Choose a video, or drop it here</span>
       </label>
       <label class="check"><input type="checkbox" name="consent" value="yes" required>
