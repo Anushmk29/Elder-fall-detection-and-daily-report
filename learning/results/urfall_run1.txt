@@ -1,0 +1,92 @@
+  Videos/adl-01.mp4: 5 s of video in 5 s
+  Videos/adl-02.mp4: 6 s of video in 2 s
+  Videos/adl-03.mp4: 6 s of video in 2 s
+  Videos/adl-04.mp4: 5 s of video in 2 s
+  Videos/adl-05.mp4: 6 s of video in 2 s
+  Videos/adl-06.mp4: 8 s of video in 2 s
+  Videos/adl-07.mp4: 6 s of video in 2 s
+  Videos/adl-08.mp4: 6 s of video in 2 s
+  Videos/adl-09.mp4: 5 s of video in 2 s
+  Videos/adl-10.mp4: 10 s of video in 4 s
+  Videos/adl-11.mp4: 10 s of video in 3 s
+  Videos/adl-12.mp4: 8 s of video in 3 s
+  Videos/adl-13.mp4: 9 s of video in 3 s
+  Videos/adl-14.mp4: 8 s of video in 3 s
+  Videos/adl-15.mp4: 9 s of video in 3 s
+  Videos/adl-16.mp4: 8 s of video in 2 s
+  Videos/adl-17.mp4: 8 s of video in 2 s
+  Videos/adl-18.mp4: 9 s of video in 3 s
+  Videos/adl-19.mp4: 8 s of video in 3 s
+  Videos/adl-20.mp4: 9 s of video in 3 s
+  Videos/adl-21.mp4: 9 s of video in 3 s
+  Videos/adl-22.mp4: 8 s of video in 2 s
+  Videos/adl-23.mp4: 7 s of video in 2 s
+  Videos/adl-24.mp4: 2 s of video in 1 s
+  Videos/adl-25.mp4: 4 s of video in 1 s
+  Videos/adl-26.mp4: 3 s of video in 1 s
+  Videos/adl-27.mp4: 3 s of video in 1 s
+  Videos/adl-28.mp4: 3 s of video in 1 s
+  Videos/adl-29.mp4: 4 s of video in 2 s
+  Videos/adl-30.mp4: 13 s of video in 4 s
+adl-30.mp4: FALSE possible fall at 7s (rule lying, during: lying down on purpose)
+  Videos/adl-31.mp4: 8 s of video in 3 s
+  Videos/adl-32.mp4: 7 s of video in 2 s
+  Videos/adl-33.mp4: 7 s of video in 2 s
+  Videos/adl-34.mp4: 6 s of video in 2 s
+adl-34.mp4: FALSE possible fall at 4s (rule lying, during: lying down on purpose)
+  Videos/adl-35.mp4: 9 s of video in 3 s
+  Videos/adl-36.mp4: 11 s of video in 3 s
+  Videos/adl-37.mp4: 12 s of video in 4 s
+  Videos/adl-38.mp4: 12 s of video in 3 s
+  Videos/adl-39.mp4: 9 s of video in 3 s
+  Videos/adl-40.mp4: 11 s of video in 3 s
+  Videos/fall-01.mp4: 5 s of video in 2 s
+fall-01.mp4: MISSED fall_any at 3s ()
+  Videos/fall-02.mp4: 4 s of video in 1 s
+  Videos/fall-03.mp4: 7 s of video in 2 s
+  Videos/fall-04.mp4: 3 s of video in 1 s
+  Videos/fall-05.mp4: 5 s of video in 2 s
+  Videos/fall-06.mp4: 3 s of video in 1 s
+  Videos/fall-07.mp4: 5 s of video in 2 s
+  Videos/fall-08.mp4: 3 s of video in 1 s
+  Videos/fall-09.mp4: 6 s of video in 2 s
+  Videos/fall-10.mp4: 4 s of video in 2 s
+fall-10.mp4: MISSED fall_any at 1s ()
+  Videos/fall-11.mp4: 4 s of video in 2 s
+  Videos/fall-12.mp4: 4 s of video in 1 s
+  Videos/fall-13.mp4: 3 s of video in 1 s
+  Videos/fall-14.mp4: 2 s of video in 1 s
+  Videos/fall-15.mp4: 2 s of video in 1 s
+fall-15.mp4: MISSED fall_any at 1s ()
+  Videos/fall-16.mp4: 2 s of video in 1 s
+  Videos/fall-17.mp4: 3 s of video in 1 s
+fall-17.mp4: MISSED fall_any at 2s ()
+  Videos/fall-18.mp4: 2 s of video in 1 s
+fall-18.mp4: MISSED fall_any at 0s ()
+  Videos/fall-19.mp4: 3 s of video in 1 s
+fall-19.mp4: MISSED fall_any at 1s ()
+  Videos/fall-20.mp4: 4 s of video in 1 s
+  Videos/fall-21.mp4: 2 s of video in 1 s
+fall-21.mp4: MISSED fall_any at 1s ()
+  Videos/fall-22.mp4: 2 s of video in 1 s
+fall-22.mp4: MISSED fall_any at 0s ()
+  Videos/fall-23.mp4: 2 s of video in 1 s
+fall-23.mp4: MISSED fall_any at 1s ()
+  Videos/fall-24.mp4: 2 s of video in 1 s
+  Videos/fall-25.mp4: 3 s of video in 1 s
+  Videos/fall-26.mp4: 2 s of video in 1 s
+  Videos/fall-27.mp4: 3 s of video in 1 s
+fall-27.mp4: MISSED fall_any at 2s ()
+  Videos/fall-28.mp4: 2 s of video in 1 s
+fall-28.mp4: MISSED fall_any at 1s ()
+  Videos/fall-29.mp4: 3 s of video in 1 s
+  Videos/fall-30.mp4: 2 s of video in 1 s
+
+videos 70, 6.6 min of video
+falls seen (possible fall)   19/30 = 63%
+  per take, any camera       19/30
+FALL ALERT on stay-down falls 0/0
+wrong ALERT on got-up falls  0/0
+false possible falls         2 (18.1/h)
+false FALL ALERTs            0 (0.0/h)
+false alarms during: {'lying down on purpose': 2}

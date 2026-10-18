@@ -1,0 +1,8 @@
+  floor_low_ratio 0: on-the-floor alert 41/59 = 69%, false 1 = 0.6/h, score 0.662
+  floor_low_ratio 0.45: on-the-floor alert 42/59 = 71%, false 1 = 0.6/h, score 0.679
+  floor_low_ratio 0.5: on-the-floor alert 44/59 = 75%, false 1 = 0.6/h, score 0.713
+  floor_low_ratio 0.55: on-the-floor alert 44/59 = 75%, false 1 = 0.6/h, score 0.713
+  floor_low_ratio 0.6: on-the-floor alert 44/59 = 75%, false 1 = 0.6/h, score 0.713
+best on TUNE: 0.5
+TEST (MCFD chute17-24 + Le2i Home, never tuned on) off (0): 23/37 = 62%, false 0 = 0.0/h
+TEST (MCFD chute17-24 + Le2i Home, never tuned on) best (0.5): 23/37 = 62%, false 0 = 0.0/h

@@ -133,3 +133,29 @@ def test_fall_swinging_past_the_sofa_but_ending_on_the_floor_is_a_fall():
     s += [sample(t / 6, "lying", [420, 640, 700, 710], LIE_KP) for t in range(25, 66)]  # centre x 0.56: on the floor
     falls = [e for e in events.analyze(build(s), {**META, "duration": 11}, rules)["events"] if e["type"] == "fall"]
     assert len(falls) == 1
+
+
+def walk_then(posture, box, rules):
+    """Walks right for 4 s (the upright reference), then `posture` in `box` for 5 s."""
+    s = []
+    for t in range(0, 24):
+        dx = 30 * t - 360  # 180 px/s = 0.45 body heights/s: walking
+        s.append(sample(t / 6, "standing", [450 + dx, 300, 550 + dx, 700],
+                        kp_person(head=(500 + dx, 320), shoulder=(500 + dx, 380), hip=(500 + dx, 500),
+                                  knee=(500 + dx, 600), ankle=(500 + dx, 700))))
+    s += [sample(t / 6, posture, box, sit_kp(640)) for t in range(24, 54)]
+    return [e for e in events.analyze(build(s), {**META, "duration": 9}, {**rules, "lying_outside_rest_s": 3})["events"]
+            if e["type"] == "lying_outside_rest"]
+
+
+def test_slumped_on_the_floor_is_on_the_floor_whatever_the_posture():
+    """Falls ending seated/slumped: the pose says sitting (or standing), the box is half their walking height."""
+    got = walk_then("sitting", [440, 520, 600, 700], RULES)
+    assert [e["how"] for e in got] == ["low (sitting or slumped)"]
+    assert walk_then("sitting", [440, 520, 600, 700], {**RULES, "floor_low_ratio": 0}) == []
+
+
+def test_sitting_on_a_chair_zone_is_not_on_the_floor():
+    chair = {"name": "Chair", "kind": "seat", "polygon": [[0.4, 0.6], [0.6, 0.6], [0.6, 0.8], [0.4, 0.8]]}
+    assert walk_then("sitting", [440, 520, 600, 700], {**RULES, "zones": [chair]}) == []
+    assert walk_then("sitting", [440, 380, 600, 700], RULES) == []  # 0.8 of walking height: a chair, no zone needed

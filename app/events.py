@@ -170,6 +170,19 @@ def motion(samples, a, b, min_conf=KP_CONF):
     return round(sorted(per_s)[len(per_s) // 2], 3) if per_s else 0.0
 
 
+def mark_low(samples, ratio, k=6):
+    """Posture-free "down": the box is at most `ratio` of this person's own upright height *at the same foot
+    position* (median of the k walking samples nearest in box-bottom y, so walking away from the camera, which
+    shrinks the box, doesn't count). Walking, not standing: a slumped person is often read as "standing", and would
+    become their own reference. Catches falls that end sitting or slumped on the floor, which the pose model doesn't
+    call lying. Sets s["low"]; needs >= k walking samples."""
+    ref = [(s["box"][3], _height(s)) for s in samples if s.get("activity") == "walking"]
+    for s in samples:
+        near = sorted(ref, key=lambda r: abs(r[0] - s["box"][3]))[:k]  # ponytail: O(n^2), fine for a 330 s window
+        s["low"] = bool(ratio and len(near) >= k and s["posture"] != "lying"
+                        and _height(s) <= ratio * sorted(h for _, h in near)[k // 2])
+
+
 def stillness(samples, min_s, move_bl):
     out, a = [], 0
     for k in range(1, len(samples) + 1):
@@ -196,6 +209,7 @@ def analyze(tracks, meta, rules):
 
     rooms = {z["name"] for z in zones if z.get("kind") == "room"}
     rest = {z["name"] for z in zones if z.get("kind") == "rest"}
+    seat = rest | {z["name"] for z in zones if z.get("kind") == "seat"}  # chairs: sitting there is low, not fallen
     events, people, timeline = [], [], []
     for tr in order:
         S, who = tr["samples"], tr["label"]
@@ -237,14 +251,18 @@ def analyze(tracks, meta, rules):
                            "got_up_s": f["got_up_s"], "how": f["how"],
                            "banner": f"FALL DETECTED · {who}", "title": "Fall detected",
                            "detail": f"{who} {how}, and {got_up}."})
-        for a, b in runs(S, lambda s: s["posture"] == "lying" and not set(s["zones"]) & rest,
-                         fps, rules["lying_outside_rest_s"]):
+        mark_low(S, rules.get("floor_low_ratio", 0))
+        down = lambda s: ((s["posture"] == "lying" and not set(s["zones"]) & rest)  # noqa: E731
+                          or (s["low"] and not set(s["zones"]) & seat))
+        for a, b in runs(S, down, fps, rules["lying_outside_rest_s"]):
             m = motion(S, a, b)
             moving = m >= rules.get("floor_moving_bl_s", 0.1)
+            span = [s for s in S if a <= s["t"] <= b]
+            how = "lying" if sum(s["posture"] == "lying" for s in span) * 2 >= len(span) else "low (sitting or slumped)"
             events.append({"type": "lying_outside_rest", "severity": "warn", "t": a, "t_end": b, "who": who,
-                           "motion": m, "moving": moving,
+                           "motion": m, "moving": moving, "how": how,
                            "title": "On the floor, moving" if moving else "On the floor, not moving",
-                           "detail": f"{who} has been lying outside bed/sofa for {b - a:.0f} s, "
+                           "detail": f"{who} has been {how} on the floor, outside bed/sofa/chairs, for {b - a:.0f} s, "
                                      f"{'moving around' if moving else 'barely moving'}."})
         for a, b in stillness(S, rules["stillness"]["min_s"], rules["stillness"]["move_bl"]):
             events.append({"type": "stillness", "severity": "info", "t": a, "t_end": b, "who": who,

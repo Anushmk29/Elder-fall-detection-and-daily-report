@@ -202,8 +202,18 @@ fall happened off camera). So the system has two separate alerts:
   Only FALLEN does anything (a new alert). It can never cancel or downgrade a rule's alert, so a wrong or missing
   answer can't hide a fall. It needs `VLM_SECOND_OPINION=1` and `OPENROUTER_API_KEY`, and it sends a home image to
   a cloud API, which is why it's opt-in. The daily cost cap (`MAX_LLM_USD_PER_DAY`) applies.
-- **Known gap:** both alerts need either the fall event or the "lying" posture. Someone who slides down slowly and
-  ends **sitting slumped on the floor** triggers neither (§7 run 13: most of the 28% not told).
+- **"On the floor" without the lying posture** (`events.mark_low`, `floor_low_ratio: 0.5`): someone who slides
+  down and ends **sitting slumped on the floor** isn't "lying", so at first neither alert fired. Now a person also
+  counts as on the floor when their box is ≤ half their own **walking** height *at the same spot in the image*
+  (the median of the 6 walking samples whose feet were nearest in image height).
+  - *Their own height, at the same spot:* a person far from the camera is small, so a fixed pixel height would
+    flag everyone at the back of the room. Comparing with themselves where they stood removes the perspective.
+  - *Walking, not standing:* the pose model often calls a slumped person "standing", so with "standing" the slumped
+    frames became their own reference and never looked low (§7 run 14). Nobody walks while slumped.
+  - *Chairs:* sitting on a chair is ~0.6–0.8 of walking height, above the line. A low armchair can be given a
+    `kind: seat` zone: sitting there never counts as on the floor (sofas/beds are `rest` zones as before).
+  - *Limits:* it needs ≥ 6 walking samples in the 330 s window (normal at home; rare in 10 s dataset clips), and a
+    person who fell *towards* the camera has a bigger box, not a lower one; the lying rules catch that case.
 - **Room:** the camera's `room:` from `cameras.yaml`, or a `kind: room` zone inside the view.
 
 ### 3.6 Notifications: `app/notify.py`
@@ -297,6 +307,26 @@ fall, then one box per frame. Three files have no fall lines and are treated as 
   holds one file per view (coffee, home_A/B/C), and `le2i_labels.py` assigns each video its view (`VIEWS`, read by
   eye) and copies the zones next to the videos, exactly like a live camera's rules file.
 
+### 5.2 Third dataset: UR Fall (a fresh test, plus "on the floor on purpose")
+
+**UR Fall Detection** (Kwolek & Kepski, Univ. of Rzeszów, 2014, fenix.ur.edu.pl/~mkepski/ds/uf.html, free for
+research): 30 falls and 40 daily activities, Kinect at chest height, 320×240 at 30 fps. Downloaded to
+`D:\datasets\urfall\` (the cam0 videos + `urfall-cam0-falls.csv` / `-adls.csv`, 117 MB).
+- Each video is **depth | RGB side by side**; `scripts/urfall_labels.py` keeps the RGB half. (Look at a frame
+  before writing a converter: the first contact sheet showed this immediately.)
+- The csv labels **every frame**: -1 not lying, 0 falling/lying down, 1 lying. Falls become `fall_any` (first 0 →
+  first 1); activities with lying frames become `lookalike` ("lying down on purpose": on a bed, a sofa, or **the
+  floor**: ADL 30–35 crawl, kneel and lie on the office floor). That's the data §8 said was missing.
+- 5 rooms (falls all in an office; activities in two bedrooms, a dark living room, an empty room, the office).
+  Zones in `learning/urfall_zones/`: beds/sofa as `rest`, the bedroom armchair as `seat`.
+- Used **only as a test**: no rule threshold was chosen on it. (The GRU *trains* on it in TRAINING.md run 4; its
+  val/test sets stay MCFD + Le2i, so that's still fair.)
+- Many fall clips **start mid-fall** (labelled fall start 0–1 s). The fall rules need ~2 s of upright before; the
+  stay-down "on the floor" alert doesn't, which is exactly why the two alerts are separate.
+- **CAUCAFall** (Mendeley Data 7w7fccy7ky, 10 subjects × 5 falls + 5 activities, real home, night and occlusions)
+  is the next one; its file server returned 502 for every download on 2026-10-19. UP-Fall needs a sign-up form
+  and per-trial Google Drive downloads of PNG frames (hundreds of GB), so it was skipped.
+
 ---
 
 ## 6. "Training" in this project, honestly
@@ -353,6 +383,9 @@ parameters to data. Here there are 4 parameters, not millions.
 | 10 | The 5 "lying but missed": first lying frame is mid-fall (box 0.75 of upright vs threshold 0.7). `settle_s` grid | tune → **test** | tune 91 → 97/195; **test 37 → 44/101** | tune +1, test ±0 | A sampling-rate bug, not a threshold problem: look at the frames |
 | 11 | Rest zones per Le2i camera view; collapse grid again | tune | zones cost 3 falls (trigger frame mid-fall next to a bench) → fixed by judging the zone where the person settles: 97/195 with or without zones | test −1 FA | Zones are a trade-off: they also hide falls *next to* furniture. Path D still loses on MCFD |
 | 12 | **Trained GRU** on keypoint sequences (TRAINING.md), mirror augmentation, threshold on val | **test** | model 35% · rules 44% · rules OR model 49% | 7.9/h · 15.8/h · 17.8/h | ~200 falls: a learned model ties hand-written rules; they make different mistakes |
+| 16 | **GRU + UR Fall in train** (TRAINING.md run 4; val/test unchanged) | **test** | model **45%** · rules 44% · rules OR model 51% | 12.5/h · 15.8/h · 19.8/h | +70 clips (incl. 16 look-alikes) and the model now beats the rules on both axes. One seed: encouraging, not proven |
+| 15 | **UR Fall, never tuned on**: `eval_staged --hold 10` and `eval_live --urfall` | UR 30 falls, 40 ADL | fall seen **63%**; FALL ALERT 63%; family told **70%** (floor alert adds 2) | 2 "possible fall" (logged) while lying down on purpose; **0** false pushes | Misses = clips starting mid-fall: no upright history for the fall rules; the floor alert covers some |
+| 14 | **Floor state without the lying posture** (`floor_low_ratio`, `tune_floor.py`) | tune / **test** | on-the-floor alert 69 → **75%** tune; test 62 → 62%; eval_live family told 72 → **74%** | +0 (10 s-run proxy) | The test misses aren't "low": person undetected (6), fell towards the camera (2), ~55 px tall with < 1 s of walking (6). Walking-height reference, not standing (standing gave 86% on tune by accident of ties, but slumped "standing" frames referenced themselves) |
 | 13 | **Replay through the live engine** (`eval_live.py`): Le2i with the last frame held 70 s ("never gets up") | Le2i 96 falls + all 2.9 h raw | **FALL ALERT 71%** at median **31 s**; floor alert adds 1; family told **72%** | **0** false FALL/floor alerts; 2.4/h "fell, got up" warnings | The floor alert rarely adds coverage: it needs "lying", the same thing the fall rules need. Fallen people "move" 0.15 bl/s (jitter + settling), so the moving threshold went 0.1 → 0.4 |
 
 Findings in plain words:
@@ -379,6 +412,14 @@ Findings in plain words:
    still said no, because false alarms quadrupled. Changing the score after seeing that would be fooling ourselves.
    Instead the rule ships *off*, as an option to try on your staged session 1 *with rest zones*, where its false
    alarms (sofa/armchair) should disappear. That's a new, pre-stated test, not a re-scored old one.
+9. **A better tune score that doesn't move the test is a warning.** The floor rule's first version went 69 → 86% on
+   tune and 62 → 62% on test. Printing the test misses showed *why* (self-reference, people too small), and the
+   fixed version is the one that ships. Test numbers that don't follow tune mean "look", not "tune harder".
+10. **More data beat more cleverness.** Three rounds of model changes (runs 12, mirror, stay-down) moved the GRU's
+    test recall by a few points; adding one small dataset (70 clips) moved it 10.
+11. **Motion while on the floor is a weak cue, now measured from both sides.** Fallen: median 0.16 body lengths/s
+    (90% below 0.40). On the floor on purpose (UR ADL, only 5 usable): median 0.37. They overlap, so `0.4` stays a
+    wording choice between alert and warn, never a reason not to tell the family.
 
 ---
 
@@ -403,12 +444,14 @@ Findings in plain words:
   sofa and bed once (`scripts/zone_helper.py`), which removes the biggest false-alarm source found here.
 
 **Done since:** bathroom > 30/45 min, sofa > 2 h, not seen > 4 h, the falling-vs-floor split with a motion cue,
-the escalate-only VLM second opinion, and `scripts/eval_live.py` (§7 run 13).
+the escalate-only VLM second opinion, and `scripts/eval_live.py` (§7 run 13); the posture-free floor state for
+seated/slumped falls (run 14); UR Fall as a third, untuned test set (run 15); the GRU retrained with it (run 16).
 
 **Still open:**
-- **Falls ending seated/slumped on the floor:** the biggest remaining miss (16 of the 33 Le2i misses). Path D exists
-  but is off (§7 run 9).
-- **No data for deliberate floor activity:** the "moving" threshold is calibrated only on fallen people.
+- **People the model can't see** are now the largest miss group on every dataset (Le2i test: 6 of 14 floor-alert
+  misses). That's the detector fine-tune (§10 step 3).
+- **Deliberate floor activity:** 5 usable examples is not a calibration. CAUCAFall (kneeling) is next.
+- **The GRU** beat the rules once (run 16). Before wiring it in: repeat with 3 seeds, and add CAUCAFall.
 - **Real-home numbers:** false alerts per *day* need a laptop running for days with real cameras. Datasets give
   per hour of acted video, which is far busier than a real day.
 - **Stays POC-only:** YOLO is AGPL; a product would swap to a permissively licensed pose model (MediaPipe).
@@ -421,7 +464,7 @@ the escalate-only VLM second opinion, and `scripts/eval_live.py` (§7 run 13).
 cd "D:\Autonoetic Edge\ElderCare"
 $env:YOLO_OFFLINE = "true"
 
-# tests (45)
+# tests (47)
 .venv\Scripts\python -m pytest -q
 
 # benchmark: the first run caches YOLO (~1.5 h on the GTX 1650 with the medium model); re-runs take ~1 min
@@ -438,11 +481,18 @@ $env:POSE_MODEL = "models/yolo11m-pose.pt"
 .venv\Scripts\python scripts\eval_staged.py "D:\datasets\le2i\Home_01\Home_01\Videos" --hold 10 --list
 .venv\Scripts\python scripts\tune_collapse.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i
 
-# what the family would receive: replay clips through the live engine (cached, no GPU needed, ~10 min)
-.venv\Scripts\python scripts\eval_live.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i
+# the "on the floor" height rule (floor_low_ratio)
+.venv\Scripts\python scripts\tune_floor.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i
+
+# UR Fall: download the cam0 videos + 2 label csvs to D:\datasets\urfall (§5.2), then
+.venv\Scripts\python scripts\urfall_labels.py D:\datasets\urfall
+.venv\Scripts\python scripts\eval_staged.py D:\datasets\urfall\Videos --hold 10
+
+# what the family would receive: replay clips through the live engine (cached, no GPU needed, ~15 min)
+.venv\Scripts\python scripts\eval_live.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i --urfall D:\datasets\urfall
 
 # train the fall model from scratch (learning/TRAINING.md)
-.venv\Scripts\python scripts\train_fall_model.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i
+.venv\Scripts\python scripts\train_fall_model.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i --urfall D:\datasets\urfall
 
 # your own recordings (learning/STAGED_TEST.md)
 .venv\Scripts\python scripts\eval_staged.py data\staged\session1 --list

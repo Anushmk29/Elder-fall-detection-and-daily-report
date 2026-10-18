@@ -124,6 +124,8 @@ The **threshold** is chosen on *validation*, with the same score the rules were 
 | 2 | + stay-down check | 37/101 = 37% | 12.5/h |
 | 3 | + mirroring augmentation | 35/101 = 35% | **7.9/h** |
 | 3 | rules **OR** model | **49/101 = 49%** | 17.8/h |
+| 4 | + **UR Fall in train** (`--urfall`: 30 falls, 16 lying down on purpose, 24 other) | **45/101 = 45%** | 12.5/h |
+| 4 | rules **OR** model | **52/101 = 51%** | 19.8/h |
 
 **What it means, in plain words:**
 1. **A model trained from scratch on ~200 falls is about as good as rules built by hand, not better.** It sits at
@@ -136,15 +138,19 @@ The **threshold** is chosen on *validation*, with the same score the rules were 
 4. Rules OR model catches the most falls (+5 over the rules alone for +3 false alarms) because they make
    *different* mistakes. Combining different methods ("ensembling") is a standard trick, and this is why.
 
-**Decision:** the model is **not** wired into the live system. It doesn't clearly beat the rules, and a
+5. **Run 4: one small extra dataset moved test recall by 10 points** (35 → 45%), more than every model change
+   before it. Now the model beats the rules on both falls and false alarms. Val and test are unchanged, so it's a
+   fair comparison, but it's one training run (one random seed): the next step is 3 seeds and CAUCAFall.
+
+**Decision:** the model is **not** wired into the live system yet. It doesn't clearly beat the rules, and a
 component that doesn't earn its place is just more to maintain. The script and `models/fall_gru.pt` stay as the
 starting point for when there is more data.
 
 ## 8. What would make the model win
 
 In order of expected value:
-1. **More falls, especially more look-alikes.** Public datasets with labels: UR Fall Detection (70 sequences,
-   Kinect + RGB), UP-Fall (17 people, 11 activities), CAUCAFall (home setting). Each one is another
+1. **More falls, especially more look-alikes.** Done once: UR Fall (run 4, GUIDE §5.2). Next: CAUCAFall (home
+   setting, Mendeley Data), UP-Fall (17 people, 11 activities; needs a sign-up). Each one is another
    `labels.csv` via a converter like `scripts/le2i_labels.py`. Keep splitting by scenario/person.
 2. **Better eyes:** the pose model still misses people lying on the floor (GUIDE §7 finding 4). Fine-tuning YOLO
    pose on floor frames would help both rules *and* model. Le2i even ships a person box per frame, a start for

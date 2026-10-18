@@ -1,0 +1,8 @@
+1. STAYED DOWN (Le2i, last frame held 70 s), 96 falls
+   FALL ALERT fired           68/96 = 71%, median 31 s after the fall started (rule: detect + 30 s)
+   'on the floor' fired       67/96 = 70%  severities {'info': 64, 'alert': 3}  (info = already covered by the fall alert)
+   family told by either      71/96 = 74%
+
+2. FALSE PUSHES (raw clips, MCFD + Le2i, 2.9 h of video): 7 = 2.4/h  by type {'fall_recovered': 7}
+
+3. MOTION of fallen people on the floor (first 4 s), 148 falls: median 0.150, 75% 0.236, 90% 0.357 body lengths/s; floor_moving_bl_s = 0.4 calls 11/148 of them 'moving'

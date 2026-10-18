@@ -1,0 +1,55 @@
+train windows 10262 (2278 fall), val 4330 (631 fall)
+epoch  1  train loss 0.875  val loss 0.672
+epoch  2  train loss 0.683  val loss 0.614
+epoch  3  train loss 0.614  val loss 0.583
+epoch  4  train loss 0.556  val loss 0.574
+epoch  5  train loss 0.523  val loss 0.537
+epoch  6  train loss 0.506  val loss 0.540
+epoch  7  train loss 0.472  val loss 0.527
+epoch  8  train loss 0.451  val loss 0.529
+epoch  9  train loss 0.438  val loss 0.505
+epoch 10  train loss 0.425  val loss 0.507
+epoch 11  train loss 0.404  val loss 0.498
+epoch 12  train loss 0.400  val loss 0.479
+epoch 13  train loss 0.387  val loss 0.490
+epoch 14  train loss 0.386  val loss 0.481
+epoch 15  train loss 0.370  val loss 0.482
+epoch 16  train loss 0.370  val loss 0.474
+epoch 17  train loss 0.377  val loss 0.473
+epoch 18  train loss 0.354  val loss 0.499
+epoch 19  train loss 0.346  val loss 0.516
+epoch 20  train loss 0.356  val loss 0.456
+epoch 21  train loss 0.344  val loss 0.473
+epoch 22  train loss 0.341  val loss 0.523
+epoch 23  train loss 0.347  val loss 0.475
+epoch 24  train loss 0.339  val loss 0.505
+epoch 25  train loss 0.321  val loss 0.507
+epoch 26  train loss 0.325  val loss 0.448
+epoch 27  train loss 0.318  val loss 0.500
+epoch 28  train loss 0.316  val loss 0.455
+epoch 29  train loss 0.317  val loss 0.496
+epoch 30  train loss 0.320  val loss 0.504
+epoch 31  train loss 0.300  val loss 0.491
+epoch 32  train loss 0.302  val loss 0.519
+val loss stopped improving -> early stop (more epochs would only memorise the train set)
+VAL stay-down 0s thr 0.30: recall 37/44 = 84%, false alarms 92 = 159.4/h
+VAL stay-down 0s thr 0.50: recall 35/44 = 80%, false alarms 66 = 114.3/h
+VAL stay-down 0s thr 0.60: recall 35/44 = 80%, false alarms 47 = 81.4/h
+VAL stay-down 0s thr 0.70: recall 35/44 = 80%, false alarms 40 = 69.3/h
+VAL stay-down 0s thr 0.80: recall 34/44 = 77%, false alarms 34 = 58.9/h
+VAL stay-down 0s thr 0.90: recall 33/44 = 75%, false alarms 27 = 46.8/h
+VAL stay-down 0s thr 0.95: recall 30/44 = 68%, false alarms 24 = 41.6/h
+VAL stay-down 0s thr 0.98: recall 24/44 = 55%, false alarms 18 = 31.2/h
+VAL stay-down 5s thr 0.30: recall 34/44 = 77%, false alarms 69 = 119.5/h
+VAL stay-down 5s thr 0.50: recall 32/44 = 73%, false alarms 46 = 79.7/h
+VAL stay-down 5s thr 0.60: recall 33/44 = 75%, false alarms 40 = 69.3/h
+VAL stay-down 5s thr 0.70: recall 33/44 = 75%, false alarms 36 = 62.4/h
+VAL stay-down 5s thr 0.80: recall 31/44 = 70%, false alarms 29 = 50.2/h
+VAL stay-down 5s thr 0.90: recall 31/44 = 70%, false alarms 25 = 43.3/h
+VAL stay-down 5s thr 0.95: recall 28/44 = 64%, false alarms 23 = 39.8/h
+VAL stay-down 5s thr 0.98: recall 22/44 = 50%, false alarms 18 = 31.2/h
+
+TEST rules (rules.yaml, no zones): recall 44/101 = 44%, false alarms 24 = 15.8/h
+TEST model thr 0.98 stay-down 0s: recall 45/101 = 45%, false alarms 19 = 12.5/h
+TEST model thr 0.98 stay-down 5s: recall 40/101 = 40%, false alarms 19 = 12.5/h
+TEST rules OR model+stay-down: recall 52/101 = 51%, false alarms 30 = 19.8/h

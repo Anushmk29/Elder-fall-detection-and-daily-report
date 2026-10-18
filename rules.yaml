@@ -40,6 +40,9 @@ fall:
   collapse_window_s: 1.0  # top drops this many body heights this fast, feet put (falls ending seated, GUIDE §7)
 
 lying_outside_rest_s: 120
+floor_low_ratio: 0.5      # also "on the floor": box <= this x their walking height at the same spot, whatever the pose
+                          # says (falls ending seated/slumped). 0 = off. Tuned: scripts/tune_floor.py, GUIDE §7 run 14.
+                          # Chairs: give them `kind: seat` zones, or sitting there for 60 s counts too
 floor_moving_bl_s: 0.4    # on the floor, keypoints moving this many body lengths/s = "moving". Above 90% of really fallen
                           # people (eval_live.py part 3); the "on purpose" side is uncalibrated (no labelled data)
 stillness:

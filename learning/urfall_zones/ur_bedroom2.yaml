@@ -1,0 +1,3 @@
+# UR Fall ADL 30, 36-40 (bedroom: bed on the right). Drawn on adl-37 / adl-30.
+zones:
+  - {name: Bed, kind: rest, polygon: [[0.50, 0.60], [1.0, 0.58], [1.0, 1.0], [0.62, 1.0], [0.50, 0.85]]}

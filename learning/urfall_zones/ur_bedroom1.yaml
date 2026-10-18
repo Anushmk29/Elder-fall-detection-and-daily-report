@@ -1,0 +1,4 @@
+# UR Fall ADL 01-11 (bedroom: couch-bed bottom right, armchair at the back). Drawn on adl-10. [x, y] fractions.
+zones:
+  - {name: Bed, kind: rest, polygon: [[0.70, 0.55], [1.0, 0.52], [1.0, 1.0], [0.80, 1.0], [0.70, 0.75]]}
+  - {name: Armchair, kind: seat, polygon: [[0.38, 0.55], [0.56, 0.55], [0.56, 0.82], [0.38, 0.82]]}
