@@ -1,0 +1,3 @@
+# Le2i Home view B (stairs, sofa right): Home_01 v8-15.
+zones:
+  - {name: Sofa, kind: rest, polygon: [[0.74, 0.45], [1.0, 0.45], [1.0, 0.95], [0.76, 0.95]]}

@@ -113,3 +113,23 @@ def test_walking_away_from_the_camera_is_not_a_collapse():
     s = [sample(t / 6, "standing", STAND_BOX, stand_kp()) for t in range(0, 24)]
     s += [sample(t / 6, "standing", [470, 500, 530, 560], stand_kp()) for t in range(24, 66)]  # smaller, feet rose
     assert events.detect_collapse(s, RULES["fall"]) == []
+
+
+def test_first_lying_frame_caught_mid_fall_still_counts():
+    """Le2i: at 6 fps the first 'lying' frame is half-way down, the next ones are on the floor."""
+    mid_kp = kp_person(head=(350, 540), shoulder=(400, 545), hip=(450, 560), knee=(520, 600), ankle=(600, 690))
+    s = [sample(t / 6, "standing", STAND_BOX, stand_kp()) for t in range(0, 24)]
+    s += [sample(24 / 6, "lying", [300, 380, 620, 700], mid_kp)]                         # box 0.8, hips -0.15 bh
+    s += [sample(t / 6, "lying", LIE_BOX, LIE_KP) for t in range(25, 66)]                 # on the floor
+    assert [f["how"] for f in events.detect_falls(s, RULES["fall"])] == ["lying"]
+    assert events.detect_falls(s, {**RULES["fall"], "settle_s": 0}) == []                 # the old single-frame check
+
+
+def test_fall_swinging_past_the_sofa_but_ending_on_the_floor_is_a_fall():
+    """The rest-zone check uses where the person settles, not the mid-fall trigger frame (Le2i Coffee_room v21)."""
+    rules = {**RULES, "zones": [{"name": "Sofa", "kind": "rest", "polygon": [[0, 0], [0.45, 0], [0.45, 1], [0, 1]]}]}
+    s = [sample(t / 6, "standing", STAND_BOX, stand_kp()) for t in range(0, 24)]
+    s += [sample(24 / 6, "lying", [250, 640, 520, 710], LIE_KP)]                       # centre x 0.385: in the zone
+    s += [sample(t / 6, "lying", [420, 640, 700, 710], LIE_KP) for t in range(25, 66)]  # centre x 0.56: on the floor
+    falls = [e for e in events.analyze(build(s), {**META, "duration": 11}, rules)["events"] if e["type"] == "fall"]
+    assert len(falls) == 1

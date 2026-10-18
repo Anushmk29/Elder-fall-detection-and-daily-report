@@ -32,6 +32,7 @@ fall:
   height_ratio: 0.7       # ...or the box shrinks to this fraction of its upright height (high cameras)
   floor_drop_frac: 0.6    # or, without 'lying': hips drop this many body heights...
   floor_window_s: 1.0     # ...this fast (a fall towards the camera reads as sitting)
+  settle_s: 0.5           # judge the lying drop over this first stretch (at 6 fps the first lying frame is mid-fall)
   min_down_s: 5.0         # and stay down at least this long (tuned: sinking into a sofa is up in ~3 s)
   vanish_s: 3.0           # or: the body drops, then nobody is seen for this long (lying people are often missed)
   vanish_min_aspect: 1.2  # the last-seen box must be wide (on the floor), not upright (walked behind furniture)

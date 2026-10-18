@@ -1,0 +1,7 @@
+  {'settle_s': 0}: recall 91/195 = 47%, false alarms 6 = 3.5/h
+  {'settle_s': 0.5}: recall 97/195 = 50%, false alarms 7 = 4.0/h
+  {'settle_s': 1.0}: recall 97/195 = 50%, false alarms 7 = 4.0/h
+  {'settle_s': 1.5}: recall 97/195 = 50%, false alarms 7 = 4.0/h
+best on TUNE: {'settle_s': 0.5}
+TEST (MCFD chute17-24 + Le2i Home, never tuned on) current rules.yaml: recall 37/101 = 37%, false alarms 24 = 15.8/h
+TEST (MCFD chute17-24 + Le2i Home, never tuned on) best: recall 44/101 = 44%, false alarms 24 = 15.8/h

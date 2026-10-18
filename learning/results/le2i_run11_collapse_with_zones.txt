@@ -1,0 +1,14 @@
+  {'collapse_frac': 0, 'collapse_window_s': 1.0}: recall 94/195 = 48%, false alarms 7 = 4.0/h
+  {'collapse_frac': 0.35, 'collapse_window_s': 1.0}: recall 115/195 = 59%, false alarms 23 = 13.2/h
+  {'collapse_frac': 0.35, 'collapse_window_s': 1.5}: recall 117/195 = 60%, false alarms 26 = 15.0/h
+  {'collapse_frac': 0.4, 'collapse_window_s': 1.0}: recall 110/195 = 56%, false alarms 21 = 12.1/h
+  {'collapse_frac': 0.4, 'collapse_window_s': 1.5}: recall 113/195 = 58%, false alarms 23 = 13.2/h
+  {'collapse_frac': 0.45, 'collapse_window_s': 1.0}: recall 106/195 = 54%, false alarms 18 = 10.4/h
+  {'collapse_frac': 0.45, 'collapse_window_s': 1.5}: recall 110/195 = 56%, false alarms 19 = 10.9/h
+  {'collapse_frac': 0.5, 'collapse_window_s': 1.0}: recall 101/195 = 52%, false alarms 14 = 8.1/h
+  {'collapse_frac': 0.5, 'collapse_window_s': 1.5}: recall 104/195 = 53%, false alarms 17 = 9.8/h
+  {'collapse_frac': 0.55, 'collapse_window_s': 1.0}: recall 101/195 = 52%, false alarms 13 = 7.5/h
+  {'collapse_frac': 0.55, 'collapse_window_s': 1.5}: recall 103/195 = 53%, false alarms 15 = 8.6/h
+best on TUNE: {'collapse_frac': 0, 'collapse_window_s': 1.0}
+TEST (MCFD chute17-24 + Le2i Home, never tuned on) current rules.yaml: recall 44/101 = 44%, false alarms 23 = 15.2/h
+TEST (MCFD chute17-24 + Le2i Home, never tuned on) best: recall 44/101 = 44%, false alarms 23 = 15.2/h

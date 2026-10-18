@@ -57,10 +57,12 @@ def detect_falls(samples, cfg):
             continue
         u = upright[0]
         h = _height(u)
-        drop = hip_y(s) - hip_y(u)
+        # judge the drop over the first settle_s of lying: at 6 fps the first "lying" frame is often mid-fall
+        settle = [p for p in samples[k:k + 12] if p["t"] - s["t"] <= cfg.get("settle_s", 0) and p["posture"] == "lying"] or [s]
+        drop = max(hip_y(p) for p in settle) - hip_y(u)
         lying = (s["posture"] == "lying" and samples[k - 1]["posture"] != "lying"
                  and (drop >= cfg["hip_drop_frac"] * h
-                      or _height(s) <= cfg.get("height_ratio", 0) * max(_height(p) for p in upright)))
+                      or min(_height(p) for p in settle) <= cfg.get("height_ratio", 0) * max(_height(p) for p in upright)))
         fast = [p for p in upright if s["t"] - p["t"] <= floor_win]
         floor = floor_frac and fast and max(hip_y(s) - hip_y(p) - floor_frac * _height(p) for p in fast) >= 0             and _height(s) <= cfg.get("floor_height_ratio", 1.0) * max(_height(p) for p in upright)
         if not (lying or floor):
@@ -210,7 +212,10 @@ def analyze(tracks, meta, rules):
         if v and not any(abs(f["t"] - v["t"]) < 5 or f["got_up_s"] is None for f in falls):
             falls.append(v)
         for f in falls:
-            if set(f["zones"]) & rest:
+            # where they ended up, 1-3 s later: the trigger frame is often mid-fall, swinging past the sofa
+            settled = [s for s in S if f["t"] + 1 <= s["t"] <= f["t"] + 3]
+            where = settled[len(settled) // 2]["zones"] if settled else f["zones"]
+            if set(where) & rest:
                 continue  # lying down on the bed/sofa, not a fall
             got_up = f"got up in {f['got_up_s']:.0f} s" if f["got_up_s"] is not None else "had not got up when the clip ended"
             how = ("dropped suddenly and could no longer be seen (possibly on the floor)" if f["how"] == "vanished"

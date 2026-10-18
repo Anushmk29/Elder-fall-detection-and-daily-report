@@ -1,0 +1,6 @@
+# Le2i Coffee_room_01/02 (one camera view). Benches = rest zones. Drawn on video (1)/(20)/(49)/(55), kept clear of
+# every mattress position seen in the contact sheet. Points are [x, y] fractions of the frame.
+zones:
+  - {name: Left bench, kind: rest, polygon: [[0.02, 0.42], [0.25, 0.42], [0.25, 0.97], [0.02, 0.97]]}
+  - {name: Back bench, kind: rest, polygon: [[0.24, 0.36], [0.47, 0.36], [0.47, 0.60], [0.24, 0.60]]}
+  - {name: Right bench, kind: rest, polygon: [[0.62, 0.36], [0.93, 0.36], [0.93, 0.70], [0.62, 0.70]]}
