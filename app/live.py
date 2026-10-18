@@ -62,6 +62,51 @@ def live_rules(path=None, overrides=None):
     return rules
 
 
+def _is_bath(name):
+    return any(w in (name or "").lower() for w in ("bath", "toilet", "wc"))
+
+
+class Watch:
+    """The slow rules, across all cameras (they outlast any camera's rolling window):
+    - in the bathroom (camera room or zone named bath*/toilet*/wc) for > bathroom_s -> warn, > bathroom_alert_s ->
+      alert; counted from when they were first seen there, also while out of sight behind the bathroom door;
+    - nobody seen on any camera for > not_seen_s during day_hours, while a camera is online -> warn.
+    Each episode fires once."""
+    def __init__(self, live):
+        self.cfg = live
+        self.last_seen, self.bath_since, self.fired = None, None, set()
+
+    def saw(self, places, ts):
+        self.last_seen = ts
+        if any(_is_bath(p) for p in places):
+            self.bath_since = self.bath_since or ts
+        else:
+            self.bath_since = None
+
+    def check(self, now, online):
+        """[(type, severity, title, detail)] newly due at `now` (unix time)."""
+        out, c = [], self.cfg
+        if self.bath_since is not None:
+            mins = (now - self.bath_since) / 60
+            for limit, sev in ((c.get("bathroom_alert_s", 2700), "alert"), (c.get("bathroom_s", 1800), "warn")):
+                key = ("bath", sev, self.bath_since)
+                if now - self.bath_since >= limit:
+                    if key not in self.fired:
+                        self.fired.add(key)
+                        out.append(("bathroom_long", sev, "Long time in the bathroom",
+                                    f"In the bathroom for {mins:.0f} min." + (" Please check." if sev == "alert" else "")))
+                    break
+        elif self.last_seen is not None and online:
+            a, b = c.get("day_hours", [8, 21])
+            gone = now - self.last_seen
+            if (a <= datetime.fromtimestamp(now).hour < b and gone >= c.get("not_seen_s", 14400)
+                    and ("gone", self.last_seen) not in self.fired):
+                self.fired.add(("gone", self.last_seen))
+                out.append(("not_seen", "warn", "Not seen for a while",
+                            f"Nobody has been seen on any camera for {gone / 3600:.1f} h during the day."))
+        return out
+
+
 class Camera:
     def __init__(self, cfg, engine, model):
         self.name, self.source = str(cfg["name"]), cfg["source"]
@@ -77,6 +122,7 @@ class Camera:
         self.falls = []       # [{"t", "state"}]: suspected -> alert | recovered
         self.logged = []      # [(type, t)] for lying/stillness de-duplication
         self.banner_until = -1.0
+        self.rest_since, self.rest_flagged = None, None  # the resident's current sofa/bed (kind: rest) stretch
         self.jpeg = None
         self.state = {"camera": self.name, "online": False, "finished": False, "fps": 0.0, "people": 0,
                       "room": None, "posture": None, "updated": None}
@@ -172,6 +218,9 @@ class Camera:
         rooms = {z["name"] for z in self.rules.get("zones", []) if z.get("kind", "room") == "room"}
         room = (next((z for z in last["zones"] if z in rooms), None) or self.room) if last else None
         posture = last["posture"] if last else None  # smoothed posture, not walking/standing: fewer log lines
+        if last:
+            self.engine.saw(self, last["zones"] + [room or self.room], t)
+            self._rest(t, last)
         if room != self.state["room"]:
             if self.state["room"]:
                 self.engine.emit(self, "zone_exit", "info", f"Left {self.state['room']}", "", t=t,
@@ -189,11 +238,35 @@ class Camera:
                 self._fall(e, t, frame)
             elif not any(typ == e["type"] and abs(t0 - e["t"]) < 10 for typ, t0 in self.logged):
                 self.logged.append((e["type"], e["t"]))
-                sev = "alert" if e["type"] == "lying_outside_rest" else "info"
-                self.engine.emit(self, e["type"], sev, e["title"], e["detail"], t=t, room=room, posture=posture,
-                                 frame=frame)
+                sev = "info"
+                if e["type"] == "lying_outside_rest":
+                    # on the floor is not the same as fallen: a fall alert already covers it; not moving -> alert;
+                    # moving (stretching, reading on a mat) -> warn, and a vision model may escalate it
+                    sev = ("info" if any(f["state"] == "alert" for f in self.falls)
+                           else "warn" if e["moving"] else "alert")
+                ev = self.engine.emit(self, e["type"], sev, e["title"], e["detail"], t=t, room=room,
+                                      posture=posture, frame=frame)
+                if e["type"] == "lying_outside_rest" and sev == "warn":
+                    self.engine.second_opinion(self, ev)
         self.logged = [x for x in self.logged if x[1] > t - self.window_s]
         self.falls = [f for f in self.falls if f["t"] > t - self.window_s]
+
+    def _rest(self, t, last):
+        """Resident on the sofa/bed (kind: rest) for > rest_long_s between rest_long_hours -> one MONITOR warning."""
+        rest = {z["name"] for z in self.rules.get("zones", []) if z.get("kind") == "rest"}
+        on = set(last["zones"]) & rest
+        if not on:
+            self.rest_since = None
+            return
+        live = self.rules.get("live", {})
+        self.rest_since = self.rest_since if self.rest_since is not None else t
+        a, b = live.get("rest_long_hours", [9, 20])
+        if (t - self.rest_since >= live.get("rest_long_s", 7200) and self.rest_flagged != self.rest_since
+                and a <= datetime.fromtimestamp(self.t0_wall + t).hour < b):
+            self.rest_flagged = self.rest_since
+            self.engine.emit(self, "rest_long", "warn", "Long time on the sofa",
+                             f"On the {sorted(on)[0].lower()} for {(t - self.rest_since) / 3600:.1f} h "
+                             f"without getting up.", t=t)
 
     def _fall(self, e, t, frame):
         """detect_falls hit -> suspected; still down after no_recovery_s -> ALERT; got up first -> recovered."""
@@ -246,6 +319,11 @@ class Engine:
         self.lock = threading.Lock()
         self.stopped = threading.Event()
         self.recent = deque(maxlen=300)
+        self.watch = Watch(pipeline.load_rules().get("live", {}))
+        self.ai = None
+        if os.environ.get("VLM_SECOND_OPINION") == "1":  # sends a home camera frame to the cloud: opt-in only
+            from . import llm
+            self.ai = llm.LLM(pipeline.DATA_DIR / "llm")
         self.cameras = {}
         for c in cfg.get("cameras", []):
             self.add(c, start=False)
@@ -265,16 +343,37 @@ class Engine:
         for cam in self.cameras.values():
             if not cam.thread.is_alive():
                 cam.thread.start()
-        threading.Thread(target=self._daily_loop, daemon=True, name="daily-report").start()
+        threading.Thread(target=self._watch_loop, daemon=True, name="watch").start()
 
     def stop(self):
         self.stopped.set()
         for cam in self.cameras.values():
             cam.stop_event.set()
 
-    def _daily_loop(self):
+    def saw(self, cam, places, t):
+        self.last_cam = cam
+        self.watch.saw(places, cam.t0_wall + t)
+
+    def second_opinion(self, cam, ev):
+        """Escalate-only: the rules aren't sure (on the floor but moving). A vision model looks at the snapshot; if
+        it says FALLEN the family gets an alert. It can never cancel or downgrade a rule's alert."""
+        if not self.ai or not ev.get("snapshot"):
+            return
+
+        def ask():
+            if self.ai.floor_verdict(SNAP_DIR / ev["snapshot"]) == "FALLEN":
+                self.emit(cam, "floor_ai_alert", "alert", "On the floor, likely fallen",
+                          f"{ev['detail']} An AI check of the image says this looks like a fall. Please check.")
+        threading.Thread(target=ask, daemon=True).start()
+
+    def _watch_loop(self):
         from . import daily  # daily imports live
-        while not self.stopped.wait(60):
+        while not self.stopped.wait(30):
+            online = any(c.state["online"] for c in self.cameras.values())
+            cam = getattr(self, "last_cam", None) or next(iter(self.cameras.values()), None)
+            for typ, sev, title, detail in self.watch.check(time.time(), online):
+                if cam:
+                    self.emit(cam, typ, sev, title, detail)
             day = daily.due()
             if day:
                 try:

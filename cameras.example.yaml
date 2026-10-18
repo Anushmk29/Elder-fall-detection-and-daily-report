@@ -6,6 +6,8 @@
 #          rtsp://user:pass@<ip>:554/...     IP/CCTV camera (Tapo: /stream2, Reolink: /h264Preview_01_sub)
 #          videos/clip.mp4                   a recording played as if it were a camera (realtime by default)
 # room:    the room this camera watches; daily report recognises kitchen*, bath*/toilet*/wc, bed* by name
+# bathroom: name a camera room, or a zone (e.g. "Bathroom door" in the hallway view), bath*/toilet*/wc; time there
+#          counts toward the 30/45 min bathroom check even while the person is out of sight behind the door
 # rules:   optional per-camera YAML (zones inside the view, posture overrides); read zone coordinates with
 #          python scripts/zone_helper.py <source>
 cameras:

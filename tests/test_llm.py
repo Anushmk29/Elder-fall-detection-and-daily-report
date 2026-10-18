@@ -56,3 +56,15 @@ def test_fallback_on_http_error_and_daily_cap(tmp_path, monkeypatch):
     ai = llm.LLM(tmp_path, client(ok_handler([])))
     ai._add_spend(0.006)
     assert not ai.report(FACTS)["ai"]
+
+
+def test_floor_verdict_parses_one_word(tmp_path, monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    img = tmp_path / "f.jpg"
+    img.write_bytes(b"fakejpeg")
+    for answer, want in (("Fallen.", "FALLEN"), ("DELIBERATE", "DELIBERATE"), ("I think she fell", None)):
+        def h(req, answer=answer):
+            return httpx.Response(200, json={"choices": [{"message": {"content": answer}}], "usage": {"cost": 0}})
+        assert llm.LLM(tmp_path / answer[:4], client(h)).floor_verdict(img) == want
+    monkeypatch.delenv("OPENROUTER_API_KEY")
+    assert llm.LLM(tmp_path, client(h)).floor_verdict(img) is None   # no key: no call, rules decide

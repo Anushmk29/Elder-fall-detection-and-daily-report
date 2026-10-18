@@ -120,6 +120,7 @@ cache, cost cap, fallback) and the HTTP API end to end on the synthetic clip (ab
 | `OPENROUTER_API_KEY` | none | Without it, captions and the report use templates labelled "AI text unavailable" |
 | `OPENROUTER_MODEL` | `google/gemini-2.5-flash` | Any vision-capable OpenRouter model |
 | `MAX_LLM_USD_PER_DAY` | `2` | Uses the cost OpenRouter reports. After the cap, templates are used until midnight (server time) |
+| `VLM_SECOND_OPINION` | off | `1` = when someone is on the floor but moving, ask the vision model "fallen or on purpose?"; it can only raise an alert, never cancel one. Sends a home camera frame to OpenRouter |
 | `DEMO_PASSCODE` | none | If set, uploads require it |
 | `RETENTION_HOURS` | `24` | Uploaded results are deleted after this |
 | `UPLOADS_PER_HOUR` | `5` | Per IP |

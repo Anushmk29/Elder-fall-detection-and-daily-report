@@ -157,6 +157,19 @@ def runs(samples, pred, fps, min_s):
     return out
 
 
+def motion(samples, a, b, min_conf=KP_CONF):
+    """How much the body moves while down: median over [a, b] of the mean keypoint displacement per second, in
+    body lengths. Someone stretching or reading on the floor moves; someone hurt or unconscious mostly doesn't."""
+    S = [s for s in samples if a <= s["t"] <= b]
+    per_s = []
+    for p, q in zip(S, S[1:]):
+        dt = q["t"] - p["t"]
+        pts = [math.dist(u[:2], v[:2]) for u, v in zip(p["kp"], q["kp"]) if u[2] >= min_conf and v[2] >= min_conf]
+        if 0 < dt <= 0.5 and pts:
+            per_s.append(sum(pts) / len(pts) / dt / body_len(p))
+    return round(sorted(per_s)[len(per_s) // 2], 3) if per_s else 0.0
+
+
 def stillness(samples, min_s, move_bl):
     out, a = [], 0
     for k in range(1, len(samples) + 1):
@@ -226,9 +239,13 @@ def analyze(tracks, meta, rules):
                            "detail": f"{who} {how}, and {got_up}."})
         for a, b in runs(S, lambda s: s["posture"] == "lying" and not set(s["zones"]) & rest,
                          fps, rules["lying_outside_rest_s"]):
+            m = motion(S, a, b)
+            moving = m >= rules.get("floor_moving_bl_s", 0.1)
             events.append({"type": "lying_outside_rest", "severity": "warn", "t": a, "t_end": b, "who": who,
-                           "title": "Lying outside bed/sofa",
-                           "detail": f"{who} was lying outside a rest area for {b - a:.0f} s."})
+                           "motion": m, "moving": moving,
+                           "title": "On the floor, moving" if moving else "On the floor, not moving",
+                           "detail": f"{who} has been lying outside bed/sofa for {b - a:.0f} s, "
+                                     f"{'moving around' if moving else 'barely moving'}."})
         for a, b in stillness(S, rules["stillness"]["min_s"], rules["stillness"]["move_bl"]):
             events.append({"type": "stillness", "severity": "info", "t": a, "t_end": b, "who": who,
                            "title": "Long stillness", "detail": f"{who} barely moved for {(b - a) / 60:.1f} min."})

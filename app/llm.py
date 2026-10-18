@@ -31,6 +31,12 @@ DAILY_NOTE_PROMPT = (
     "is marked ⚠️, or say the day looks normal. No diagnosis, no facts that are not in the summary.\n\n{summary}")
 
 
+FLOOR_PROMPT = (
+    "A home camera shows an older person on the floor, outside the bed and sofa. Does this look like someone who "
+    "has fallen or cannot get up, or like someone on the floor on purpose (exercise, sitting or resting on a mat, "
+    "playing, looking for something)? Answer with exactly one word: FALLEN, DELIBERATE or UNSURE.")
+
+
 class LLM:
     def __init__(self, data_dir, client=None):
         self.dir = Path(data_dir)
@@ -89,6 +95,15 @@ class LLM:
             {"type": "text", "text": CAPTION_PROMPT.format(context=context)},
             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}]}], max_tokens=80)
         return {"text": text, "ai": True} if text else {"text": context[:1].upper() + context[1:] + ".", "ai": False}
+
+    def floor_verdict(self, image_path):
+        """'FALLEN' | 'DELIBERATE' | 'UNSURE' | None (no key, cap reached, failure, or an unclear answer)."""
+        b64 = base64.b64encode(Path(image_path).read_bytes()).decode()
+        text = self.chat([{"role": "user", "content": [
+            {"type": "text", "text": FLOOR_PROMPT},
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}]}], max_tokens=5)
+        word = (text or "").strip().strip(".").upper()
+        return word if word in ("FALLEN", "DELIBERATE", "UNSURE") else None
 
     def daily_note(self, summary):
         """1-2 sentences for the family on top of the rule-based daily summary, or None (no key/cap/failure)."""

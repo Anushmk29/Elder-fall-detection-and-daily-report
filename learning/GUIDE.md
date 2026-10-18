@@ -163,7 +163,47 @@ for > N s).
 
   The same fall is seen again every second (the window re-evaluates). Matching by fall time (±3 s) makes sure each
   fall fires each message once. `tests/test_live.py` checks exactly this.
-- **Severities:** `alert` and `warn` are pushed to the family; `info` is only logged.
+- **Severities:** `alert` and `warn` are pushed to the family; `info` is only logged. The page/HA status is
+  **ALERT** if an alert happened in the last hour, **MONITOR** for a warning, else **NORMAL**.
+- **Falling is not the same as lying on the floor** (§3.5.1).
+- **The slow rules** (`Watch` and `Camera._rest`; they outlast the rolling window, so they keep their own timers):
+
+  | event | when | severity |
+  |---|---|---|
+  | `bathroom_long` | location named bath*/toilet*/wc (camera room or zone, e.g. a "Bathroom door" zone in the hallway) for > 30 min, counted also while out of sight behind the door | warn; > 45 min alert |
+  | `rest_long` | on a `kind: rest` zone (sofa) > 2 h between 09:00–20:00 | warn |
+  | `not_seen` | nobody on any camera > 4 h between 08:00–21:00, while a camera is online | warn |
+  | night activity | 23:00–05:00 | counted in the daily report, not pushed |
+
+  Each fires once per episode. `tests/test_live.py::test_watch_bathroom_and_not_seen` walks through a whole
+  episode, including "asleep at night is not missing".
+
+#### 3.5.1 Falling vs lying on the floor
+
+They're two different things:
+- **falling** is an *event*: upright to the floor, fast, not controlled;
+- **lying on the floor** is a *state*, and it can be on purpose (exercise, a floor mat, playing with a child).
+
+A fall can happen without a long lie (they get up), and a long lie without a seen fall (a slow collapse, or the
+fall happened off camera). So the system has two separate alerts:
+
+| | what triggers it | message | severity |
+|---|---|---|---|
+| **FALL — not getting up** | the fall *event* (§3.4), then still down 30 s | "fell and has not got up for 31 s" | alert |
+| **On the floor, not moving** | lying outside bed/sofa ≥ 60 s, keypoints barely moving | "lying outside bed/sofa for 60 s, barely moving" | alert |
+| **On the floor, moving** | same, but moving ≥ `floor_moving_bl_s` (0.4 body lengths/s) | "…, moving around" | warn (MONITOR) |
+| *(already alerted)* | on the floor after a FALL ALERT | logged only | info: no second ping |
+
+- **Motion** (`events.motion`): the median, over the lying stretch, of how far the visible keypoints move per
+  second, in body lengths. It's a weak cue (see §7 run 13), so it only chooses between alert and warn: **both are
+  pushed**, and a wrong call changes the wording, not whether the family is told.
+- **AI second opinion, escalate-only** (`Engine.second_opinion`, off by default): for the unsure case ("on the
+  floor, moving") the snapshot goes to a vision model with one question: FALLEN, DELIBERATE or UNSURE?
+  Only FALLEN does anything (a new alert). It can never cancel or downgrade a rule's alert, so a wrong or missing
+  answer can't hide a fall. It needs `VLM_SECOND_OPINION=1` and `OPENROUTER_API_KEY`, and it sends a home image to
+  a cloud API, which is why it's opt-in. The daily cost cap (`MAX_LLM_USD_PER_DAY`) applies.
+- **Known gap:** both alerts need either the fall event or the "lying" posture. Someone who slides down slowly and
+  ends **sitting slumped on the floor** triggers neither (§7 run 13: most of the 28% not told).
 - **Room:** the camera's `room:` from `cameras.yaml`, or a `kind: room` zone inside the view.
 
 ### 3.6 Notifications: `app/notify.py`
@@ -313,6 +353,7 @@ parameters to data. Here there are 4 parameters, not millions.
 | 10 | The 5 "lying but missed": first lying frame is mid-fall (box 0.75 of upright vs threshold 0.7). `settle_s` grid | tune → **test** | tune 91 → 97/195; **test 37 → 44/101** | tune +1, test ±0 | A sampling-rate bug, not a threshold problem: look at the frames |
 | 11 | Rest zones per Le2i camera view; collapse grid again | tune | zones cost 3 falls (trigger frame mid-fall next to a bench) → fixed by judging the zone where the person settles: 97/195 with or without zones | test −1 FA | Zones are a trade-off: they also hide falls *next to* furniture. Path D still loses on MCFD |
 | 12 | **Trained GRU** on keypoint sequences (TRAINING.md), mirror augmentation, threshold on val | **test** | model 35% · rules 44% · rules OR model 49% | 7.9/h · 15.8/h · 17.8/h | ~200 falls: a learned model ties hand-written rules; they make different mistakes |
+| 13 | **Replay through the live engine** (`eval_live.py`): Le2i with the last frame held 70 s ("never gets up") | Le2i 96 falls + all 2.9 h raw | **FALL ALERT 71%** at median **31 s**; floor alert adds 1; family told **72%** | **0** false FALL/floor alerts; 2.4/h "fell, got up" warnings | The floor alert rarely adds coverage: it needs "lying", the same thing the fall rules need. Fallen people "move" 0.15 bl/s (jitter + settling), so the moving threshold went 0.1 → 0.4 |
 
 Findings in plain words:
 1. **Check the data's time base.** One wrong number (fps) made a working system look completely broken.
@@ -361,8 +402,16 @@ Findings in plain words:
 - The benchmark runs **without rest zones**, because the furniture moves between scenarios. In a home you draw the
   sofa and bed once (`scripts/zone_helper.py`), which removes the biggest false-alarm source found here.
 
-**Not done yet:** a staged-fall test with your own phones (Milestone 6, see the plan), bathroom > 30 min and
-sofa > 2 h rules, VLM second opinion, and `scripts/eval_live.py`.
+**Done since:** bathroom > 30/45 min, sofa > 2 h, not seen > 4 h, the falling-vs-floor split with a motion cue,
+the escalate-only VLM second opinion, and `scripts/eval_live.py` (§7 run 13).
+
+**Still open:**
+- **Falls ending seated/slumped on the floor:** the biggest remaining miss (16 of the 33 Le2i misses). Path D exists
+  but is off (§7 run 9).
+- **No data for deliberate floor activity:** the "moving" threshold is calibrated only on fallen people.
+- **Real-home numbers:** false alerts per *day* need a laptop running for days with real cameras. Datasets give
+  per hour of acted video, which is far busier than a real day.
+- **Stays POC-only:** YOLO is AGPL; a product would swap to a permissively licensed pose model (MediaPipe).
 
 ---
 
@@ -372,7 +421,7 @@ sofa > 2 h rules, VLM second opinion, and `scripts/eval_live.py`.
 cd "D:\Autonoetic Edge\ElderCare"
 $env:YOLO_OFFLINE = "true"
 
-# tests (39)
+# tests (45)
 .venv\Scripts\python -m pytest -q
 
 # benchmark: the first run caches YOLO (~1.5 h on the GTX 1650 with the medium model); re-runs take ~1 min
@@ -388,6 +437,9 @@ $env:POSE_MODEL = "models/yolo11m-pose.pt"
 .venv\Scripts\python scripts\le2i_labels.py D:\datasets\le2i
 .venv\Scripts\python scripts\eval_staged.py "D:\datasets\le2i\Home_01\Home_01\Videos" --hold 10 --list
 .venv\Scripts\python scripts\tune_collapse.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i
+
+# what the family would receive: replay clips through the live engine (cached, no GPU needed, ~10 min)
+.venv\Scripts\python scripts\eval_live.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i
 
 # train the fall model from scratch (learning/TRAINING.md)
 .venv\Scripts\python scripts\train_fall_model.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i

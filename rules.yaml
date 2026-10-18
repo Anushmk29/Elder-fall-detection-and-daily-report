@@ -40,6 +40,8 @@ fall:
   collapse_window_s: 1.0  # top drops this many body heights this fast, feet put (falls ending seated, GUIDE §7)
 
 lying_outside_rest_s: 120
+floor_moving_bl_s: 0.4    # on the floor, keypoints moving this many body lengths/s = "moving". Above 90% of really fallen
+                          # people (eval_live.py part 3); the "on purpose" side is uncalibrated (no labelled data)
 stillness:
   min_s: 300              # barely moving for this long
   move_bl: 0.15           # "barely" = within this many body lengths
@@ -48,5 +50,11 @@ live:                     # live cameras (cameras.yaml) use these instead of the
   no_recovery_s: 30       # fall, then still down this long -> FALL ALERT pushed to the family
   lying_outside_rest_s: 60
   stillness_s: 300
+  rest_long_s: 7200       # on the sofa/bed (kind: rest) this long...
+  rest_long_hours: [9, 20]  # ...during these hours -> "Long time on the sofa" (MONITOR)
+  bathroom_s: 1800        # in the bathroom (room/zone named bath*, toilet*, wc) this long -> MONITOR...
+  bathroom_alert_s: 2700  # ...this long -> ALERT. Keeps counting while behind the bathroom door, out of sight
+  not_seen_s: 14400       # nobody on any camera this long...
+  day_hours: [8, 21]      # ...during these hours -> "Not seen for a while" (MONITOR)
 
 zones: []                 # none by default; per camera/clip in its own file (see videos/*.yaml)
