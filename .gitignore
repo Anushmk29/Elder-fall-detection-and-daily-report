@@ -11,3 +11,4 @@ videos/*
 cameras.yaml
 deploy/homeassistant/config/*
 !deploy/homeassistant/config/automations.yaml
+.claude/scheduled_tasks.lock
