@@ -319,7 +319,7 @@ sofa > 2 h rules, VLM second opinion, and `scripts/eval_live.py`.
 cd "D:\Autonoetic Edge\ElderCare"
 $env:YOLO_OFFLINE = "true"
 
-# tests (34)
+# tests (35)
 .venv\Scripts\python -m pytest -q
 
 # benchmark: the first run caches YOLO (~1.5 h on the GTX 1650 with the medium model); re-runs take ~1 min
@@ -346,6 +346,8 @@ The saved outputs of these runs are in `learning/results/`.
 1. **Staged falls on your own setup** (most valuable): 2–3 phones at shelf height, falls onto a mattress, lying
    still for 40 s, and normal sitting and sofa lying. This measures what matters: FALL ALERT recall and false
    alerts per day, from *your* camera angles.
+   **Started:** the recording/labelling protocol is [STAGED_TEST.md](STAGED_TEST.md), scored by
+   `scripts/eval_staged.py` (same matching as `eval_mcfd.py`, plus FALL-ALERT recall and latency).
 2. **Rest zones per camera:** draw bed and sofa polygons. Expect most remaining "possible fall" noise to disappear.
 3. **Real training: fine-tune the detector on fallen people.** Extract frames from these videos (and your staged
    ones) where a person lies on the floor, label boxes, possibly keypoints (tools: CVAT or Label Studio), and

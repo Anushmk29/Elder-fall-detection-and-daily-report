@@ -53,8 +53,8 @@ def cache_dir(rules):
     return CACHE_ROOT / f"{Path(perception.MODEL_PATH).stem}-c{rules.get('det_conf', 0.25)}"
 
 
-def load_frames(video, rules):
-    cache = cache_dir(rules) / f"{video.parent.name}_{video.stem}.json.gz"
+def load_frames(video, rules, cache_root=None):
+    cache = (cache_root or cache_dir(rules)) / f"{video.parent.name}_{video.stem}.json.gz"
     if cache.exists():
         data = json.loads(gzip.decompress(cache.read_bytes()))
     else:

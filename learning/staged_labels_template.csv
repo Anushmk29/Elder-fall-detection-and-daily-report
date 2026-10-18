@@ -1,0 +1,8 @@
+video,camera,take,kind,start_s,end_s,note
+phoneA_s1.mp4,phoneA,1,fall_stay,34.0,36.0,forward trip onto mattress
+phoneA_s1.mp4,phoneA,2,fall,95.5,97.0,backward slip then got up
+phoneA_s1.mp4,phoneA,3,lookalike,150.0,158.0,sat down hard on sofa
+phoneB_s1.mp4,phoneB,1,fall_stay,21.0,23.0,forward trip onto mattress
+phoneB_s1.mp4,phoneB,2,fall,82.5,84.0,backward slip then got up
+phoneB_s1.mp4,phoneB,3,lookalike,137.0,145.0,sat down hard on sofa
+walking_normal.mp4,phoneA,,none,,,10 min normal moving around
