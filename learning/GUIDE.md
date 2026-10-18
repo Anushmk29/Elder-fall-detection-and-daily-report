@@ -323,9 +323,24 @@ research): 30 falls and 40 daily activities, Kinect at chest height, 320×240 at
   val/test sets stay MCFD + Le2i, so that's still fair.)
 - Many fall clips **start mid-fall** (labelled fall start 0–1 s). The fall rules need ~2 s of upright before; the
   stay-down "on the floor" alert doesn't, which is exactly why the two alerts are separate.
-- **CAUCAFall** (Mendeley Data 7w7fccy7ky, 10 subjects × 5 falls + 5 activities, real home, night and occlusions)
-  is the next one; its file server returned 502 for every download on 2026-10-19. UP-Fall needs a sign-up form
-  and per-trial Google Drive downloads of PNG frames (hundreds of GB), so it was skipped.
+- UP-Fall needs a sign-up form and per-trial Google Drive downloads of PNG frames (hundreds of GB): skipped.
+
+### 5.3 Fourth dataset: CAUCAFall (a real home, high corner camera)
+
+**CAUCAFall** (Eraso et al., Univ. del Cauca, 2022, Mendeley Data 7w7fccy7ky, CC BY 4.0): 10 subjects × 5 falls
+(backwards, forward, left, right, from sitting) + 5 activities (hop, kneel, pick up, sit down, walk), one room of a
+real home, a camera high in a corner, 720×480 at 20 fps, day, artificial light and night (infrared).
+`scripts/cauca_labels.py D:\datasets\cauca` downloads it straight from the Mendeley API.
+- Every frame has a YOLO-format `.txt` (class 1 = fall). Downloading only the 100 `.avi` (~200 MB) and finding the
+  first fall frame by **binary search** over the label files (~8 requests per clip, not ~250, not the 10 GB of
+  PNGs) works because the label is 0…0 then 1 to the end: checked on one whole clip first. Check an assumption
+  once, cheaply, before building on it.
+- **"Fall" there means "already down"**: a contact sheet at −1 s / 0 s / +1 s showed standing, then on the floor.
+  So the labelled fall is the first fall frame ± 1 s. Every dataset defines "the fall" differently (Le2i: the
+  falling motion; UR: falling *and* lying down; CAUCAFall: on the floor). Read the definition, then look.
+- One clip (S9 Fall forward) has no fall frames: left out, since as "none" a correct detection would score false.
+- Mendeley once answered a download with an error message in a 200 OK, which was saved as `S3_Hop.avi`. The
+  converter now treats that as a failed download; a video that won't open is the symptom to look for.
 
 ---
 
@@ -383,8 +398,10 @@ parameters to data. Here there are 4 parameters, not millions.
 | 10 | The 5 "lying but missed": first lying frame is mid-fall (box 0.75 of upright vs threshold 0.7). `settle_s` grid | tune → **test** | tune 91 → 97/195; **test 37 → 44/101** | tune +1, test ±0 | A sampling-rate bug, not a threshold problem: look at the frames |
 | 11 | Rest zones per Le2i camera view; collapse grid again | tune | zones cost 3 falls (trigger frame mid-fall next to a bench) → fixed by judging the zone where the person settles: 97/195 with or without zones | test −1 FA | Zones are a trade-off: they also hide falls *next to* furniture. Path D still loses on MCFD |
 | 12 | **Trained GRU** on keypoint sequences (TRAINING.md), mirror augmentation, threshold on val | **test** | model 35% · rules 44% · rules OR model 49% | 7.9/h · 15.8/h · 17.8/h | ~200 falls: a learned model ties hand-written rules; they make different mistakes |
+| 18 | **GRU, 3 seeds each**: + UR Fall, and + UR Fall + CAUCAFall (TRAINING.md run 5) | **test** | UR: 45/47/43% (mean **45%**); UR+CAUCA: 46/49/61% (mean **52%**); rules 44% | UR 11.4/h; UR+CAUCA 11.9/h; rules 15.8/h | Fewer false alarms than the rules in 6/6 runs, more falls in 5/6: not luck. Seeds spread ±8 points: report the spread, not the best run |
+| 17 | **CAUCAFall, never tuned on** (`eval_staged --hold 10`, `eval_live --extra`) | 49 falls, 50 ADL | fall seen **63%**; family told **63%** | 1 "possible fall" (logged, picking up an object); 0 false pushes | 8 of 9 *forward* falls missed: the high corner camera sees a forward fall head-on, so it's foreshortened, not "lying" |
 | 16 | **GRU + UR Fall in train** (TRAINING.md run 4; val/test unchanged) | **test** | model **45%** · rules 44% · rules OR model 51% | 12.5/h · 15.8/h · 19.8/h | +70 clips (incl. 16 look-alikes) and the model now beats the rules on both axes. One seed: encouraging, not proven |
-| 15 | **UR Fall, never tuned on**: `eval_staged --hold 10` and `eval_live --urfall` | UR 30 falls, 40 ADL | fall seen **63%**; FALL ALERT 63%; family told **70%** (floor alert adds 2) | 2 "possible fall" (logged) while lying down on purpose; **0** false pushes | Misses = clips starting mid-fall: no upright history for the fall rules; the floor alert covers some |
+| 15 | **UR Fall, never tuned on**: `eval_staged --hold 10` and `eval_live --extra` | UR 30 falls, 40 ADL | fall seen **63%**; FALL ALERT 63%; family told **70%** (floor alert adds 2) | 2 "possible fall" (logged) while lying down on purpose; **0** false pushes | Misses = clips starting mid-fall: no upright history for the fall rules; the floor alert covers some |
 | 14 | **Floor state without the lying posture** (`floor_low_ratio`, `tune_floor.py`) | tune / **test** | on-the-floor alert 69 → **75%** tune; test 62 → 62%; eval_live family told 72 → **74%** | +0 (10 s-run proxy) | The test misses aren't "low": person undetected (6), fell towards the camera (2), ~55 px tall with < 1 s of walking (6). Walking-height reference, not standing (standing gave 86% on tune by accident of ties, but slumped "standing" frames referenced themselves) |
 | 13 | **Replay through the live engine** (`eval_live.py`): Le2i with the last frame held 70 s ("never gets up") | Le2i 96 falls + all 2.9 h raw | **FALL ALERT 71%** at median **31 s**; floor alert adds 1; family told **72%** | **0** false FALL/floor alerts; 2.4/h "fell, got up" warnings | The floor alert rarely adds coverage: it needs "lying", the same thing the fall rules need. Fallen people "move" 0.15 bl/s (jitter + settling), so the moving threshold went 0.1 → 0.4 |
 
@@ -416,7 +433,8 @@ Findings in plain words:
    tune and 62 → 62% on test. Printing the test misses showed *why* (self-reference, people too small), and the
    fixed version is the one that ships. Test numbers that don't follow tune mean "look", not "tune harder".
 10. **More data beat more cleverness.** Three rounds of model changes (runs 12, mirror, stay-down) moved the GRU's
-    test recall by a few points; adding one small dataset (70 clips) moved it 10.
+    test recall by a few points; adding one small dataset (70 clips) moved it 10, a second one (99 clips) 7 more
+    on average over 3 seeds (run 18).
 11. **Motion while on the floor is a weak cue, now measured from both sides.** Fallen: median 0.16 body lengths/s
     (90% below 0.40). On the floor on purpose (UR ADL, only 5 usable): median 0.37. They overlap, so `0.4` stays a
     wording choice between alert and warn, never a reason not to tell the family.
@@ -445,13 +463,18 @@ Findings in plain words:
 
 **Done since:** bathroom > 30/45 min, sofa > 2 h, not seen > 4 h, the falling-vs-floor split with a motion cue,
 the escalate-only VLM second opinion, and `scripts/eval_live.py` (§7 run 13); the posture-free floor state for
-seated/slumped falls (run 14); UR Fall as a third, untuned test set (run 15); the GRU retrained with it (run 16).
+seated/slumped falls (run 14); UR Fall and CAUCAFall as untuned test sets (runs 15, 17); the GRU retrained with
+them over 3 seeds (runs 16, 18).
 
 **Still open:**
 - **People the model can't see** are now the largest miss group on every dataset (Le2i test: 6 of 14 floor-alert
   misses). That's the detector fine-tune (§10 step 3).
-- **Deliberate floor activity:** 5 usable examples is not a calibration. CAUCAFall (kneeling) is next.
-- **The GRU** beat the rules once (run 16). Before wiring it in: repeat with 3 seeds, and add CAUCAFall.
+- **Deliberate floor activity:** still only 5 usable examples (CAUCAFall's kneeling is labelled as whole
+  "no fall" clips, not as on-the-floor stretches). Not a calibration.
+- **Forward falls towards a high camera** (CAUCAFall: 8 of 9 missed): foreshortened, neither "lying" nor much
+  lower. A detector fine-tune on such frames, or the GRU, which already learns from them.
+- **The GRU now beats the rules** over 3 seeds (run 18). Wiring it into `live.py` as a second fall signal (rules OR
+  model) is the next decision; it isn't done.
 - **Real-home numbers:** false alerts per *day* need a laptop running for days with real cameras. Datasets give
   per hour of acted video, which is far busier than a real day.
 - **Stays POC-only:** YOLO is AGPL; a product would swap to a permissively licensed pose model (MediaPipe).
@@ -484,15 +507,19 @@ $env:POSE_MODEL = "models/yolo11m-pose.pt"
 # the "on the floor" height rule (floor_low_ratio)
 .venv\Scripts\python scripts\tune_floor.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i
 
+# CAUCAFall: downloads itself (§5.3)
+.venv\Scripts\python scripts\cauca_labels.py D:\datasets\cauca
+.venv\Scripts\python scripts\eval_staged.py D:\datasets\cauca\Videos --hold 10
+
 # UR Fall: download the cam0 videos + 2 label csvs to D:\datasets\urfall (§5.2), then
 .venv\Scripts\python scripts\urfall_labels.py D:\datasets\urfall
 .venv\Scripts\python scripts\eval_staged.py D:\datasets\urfall\Videos --hold 10
 
 # what the family would receive: replay clips through the live engine (cached, no GPU needed, ~15 min)
-.venv\Scripts\python scripts\eval_live.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i --urfall D:\datasets\urfall
+.venv\Scripts\python scripts\eval_live.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i --extra D:\datasets\urfall\Videos D:\datasets\cauca\Videos
 
 # train the fall model from scratch (learning/TRAINING.md)
-.venv\Scripts\python scripts\train_fall_model.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i --urfall D:\datasets\urfall
+.venv\Scripts\python scripts\train_fall_model.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i --extra D:\datasets\urfall\Videos D:\datasets\cauca\Videos
 
 # your own recordings (learning/STAGED_TEST.md)
 .venv\Scripts\python scripts\eval_staged.py data\staged\session1 --list

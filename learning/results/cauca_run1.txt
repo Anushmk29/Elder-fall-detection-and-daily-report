@@ -1,0 +1,93 @@
+not in labels.csv, skipped: S9_Fall_forward.avi
+S10_Fall_forward.avi: MISSED fall_any at 2s (FallForwardS10.avi)
+S1_Fall_forward.avi: MISSED fall_any at 6s (FallForwardS1.avi)
+S1_Fall_left.avi: MISSED fall_any at 1s (FallLeftS1.avi)
+S2_Fall_backwards.avi: MISSED fall_any at 2s (FallBackwardsS2.avi)
+S2_Fall_forward.avi: MISSED fall_any at 0s (FallForwardS2.avi)
+S2_Fall_sitting.avi: MISSED fall_any at 3s (FallSittingS2.avi)
+S3_Fall_forward.avi: MISSED fall_any at 3s (FallForwardS3.avi)
+S3_Fall_left.avi: MISSED fall_any at 4s (FallLeftS3.avi)
+  Videos/S3_Hop.avi: 8 s of video in 7 s
+  Videos/S3_Kneel.avi: 11 s of video in 3 s
+  Videos/S3_Pick_up_object.avi: 9 s of video in 3 s
+  Videos/S3_Sit_down.avi: 13 s of video in 4 s
+  Videos/S3_Walk.avi: 9 s of video in 3 s
+  Videos/S4_Fall_backwards.avi: 10 s of video in 3 s
+S4_Fall_backwards.avi: MISSED fall_any at 2s (FallBackwardsS4.avi)
+  Videos/S4_Fall_forward.avi: 8 s of video in 2 s
+S4_Fall_forward.avi: MISSED fall_any at 0s (FallForwardS4.avi)
+  Videos/S4_Fall_left.avi: 8 s of video in 2 s
+  Videos/S4_Fall_right.avi: 8 s of video in 2 s
+S4_Fall_right.avi: MISSED fall_any at 1s (FallRightS4.avi)
+  Videos/S4_Fall_sitting.avi: 10 s of video in 3 s
+S4_Fall_sitting.avi: MISSED fall_any at 2s (FallSittingS4.avi)
+  Videos/S4_Hop.avi: 7 s of video in 2 s
+  Videos/S4_Kneel.avi: 11 s of video in 3 s
+  Videos/S4_Pick_up_object.avi: 9 s of video in 3 s
+  Videos/S4_Sit_down.avi: 10 s of video in 3 s
+  Videos/S4_Walk.avi: 12 s of video in 3 s
+  Videos/S5_Fall_backwards.avi: 11 s of video in 3 s
+  Videos/S5_Fall_forward.avi: 10 s of video in 3 s
+S5_Fall_forward.avi: MISSED fall_any at 2s (FallForwardS5.avi)
+  Videos/S5_Fall_left.avi: 12 s of video in 4 s
+  Videos/S5_Fall_right.avi: 11 s of video in 3 s
+  Videos/S5_Fall_sitting.avi: 11 s of video in 3 s
+  Videos/S5_Hop.avi: 6 s of video in 2 s
+  Videos/S5_Kneel.avi: 10 s of video in 3 s
+  Videos/S5_Pick_up_object.avi: 14 s of video in 4 s
+  Videos/S5_Sit_down.avi: 13 s of video in 4 s
+  Videos/S5_Walk.avi: 11 s of video in 3 s
+  Videos/S6_Fall_backwards.avi: 12 s of video in 3 s
+S6_Fall_backwards.avi: MISSED fall_any at 4s (FallBackwardsS6.avi)
+  Videos/S6_Fall_forward.avi: 10 s of video in 3 s
+S6_Fall_forward.avi: MISSED fall_any at 3s (FallForwardS6.avi)
+  Videos/S6_Fall_left.avi: 11 s of video in 3 s
+  Videos/S6_Fall_right.avi: 11 s of video in 3 s
+  Videos/S6_Fall_sitting.avi: 12 s of video in 4 s
+  Videos/S6_Hop.avi: 8 s of video in 2 s
+  Videos/S6_Kneel.avi: 9 s of video in 3 s
+  Videos/S6_Pick_up_object.avi: 10 s of video in 3 s
+  Videos/S6_Sit_down.avi: 9 s of video in 3 s
+  Videos/S6_Walk.avi: 13 s of video in 4 s
+  Videos/S7_Fall_backwards.avi: 13 s of video in 4 s
+  Videos/S7_Fall_forward.avi: 8 s of video in 3 s
+S7_Fall_forward.avi: MISSED fall_any at 1s (FallForwardS7.avi)
+  Videos/S7_Fall_left.avi: 11 s of video in 3 s
+  Videos/S7_Fall_right.avi: 8 s of video in 3 s
+  Videos/S7_Fall_sitting.avi: 10 s of video in 4 s
+  Videos/S7_Hop.avi: 10 s of video in 3 s
+  Videos/S7_Kneel.avi: 10 s of video in 3 s
+  Videos/S7_Pick_up_object.avi: 8 s of video in 2 s
+  Videos/S7_Sit_down.avi: 10 s of video in 3 s
+  Videos/S7_Walk.avi: 10 s of video in 3 s
+  Videos/S8_Fall_backwards.avi: 11 s of video in 3 s
+  Videos/S8_Fall_forward.avi: 6 s of video in 2 s
+S8_Fall_forward.avi: MISSED fall_any at 1s (FallForwardS8.avi)
+  Videos/S8_Fall_left.avi: 10 s of video in 3 s
+  Videos/S8_Fall_right.avi: 11 s of video in 3 s
+  Videos/S8_Fall_sitting.avi: 12 s of video in 3 s
+  Videos/S8_Hop.avi: 8 s of video in 3 s
+  Videos/S8_Kneel.avi: 13 s of video in 4 s
+  Videos/S8_Pick_up_object.avi: 13 s of video in 4 s
+S8_Pick_up_object.avi: FALSE possible fall at 7s (rule lying, during: other)
+  Videos/S8_Sit_down.avi: 11 s of video in 3 s
+  Videos/S8_Walk.avi: 11 s of video in 3 s
+  Videos/S9_Fall_backwards.avi: 13 s of video in 4 s
+  Videos/S9_Fall_left.avi: 10 s of video in 3 s
+S9_Fall_left.avi: MISSED fall_any at 2s (FallLeftS9.avi)
+  Videos/S9_Fall_right.avi: 9 s of video in 3 s
+  Videos/S9_Fall_sitting.avi: 11 s of video in 3 s
+  Videos/S9_Hop.avi: 11 s of video in 3 s
+  Videos/S9_Kneel.avi: 11 s of video in 3 s
+  Videos/S9_Pick_up_object.avi: 11 s of video in 3 s
+  Videos/S9_Sit_down.avi: 12 s of video in 4 s
+  Videos/S9_Walk.avi: 12 s of video in 3 s
+
+videos 99, 16.4 min of video
+falls seen (possible fall)   31/49 = 63%
+  per take, any camera       31/49
+FALL ALERT on stay-down falls 0/0
+wrong ALERT on got-up falls  0/0
+false possible falls         1 (3.6/h)
+false FALL ALERTs            0 (0.0/h)
+false alarms during: {'other': 1}

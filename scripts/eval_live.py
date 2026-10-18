@@ -1,7 +1,7 @@
 """Replay labelled clips through the real live engine (live.Camera, rolling window, 1 s evaluations) as fast as possible,
 and measure what the *family* would receive. Uses the cached YOLO output, so it doesn't need the GPU.
 
-Usage: python scripts/eval_live.py "C:/.../archive (4)" D:/datasets/le2i [--urfall D:/datasets/urfall] [--hold 70]
+Usage: python scripts/eval_live.py "C:/.../archive (4)" D:/datasets/le2i [--extra D:/datasets/urfall/Videos D:/datasets/cauca/Videos] [--hold 70]
 
 1. Stayed down (Le2i, last frame held --hold s, i.e. the person never gets up): does the FALL ALERT fire, how long
    after the labelled fall start, and does the separate "on the floor" alert fire as a safety net?
@@ -9,7 +9,7 @@ Usage: python scripts/eval_live.py "C:/.../archive (4)" D:/datasets/le2i [--urfa
 2. False pushes per hour (raw clips, MCFD + Le2i): every pushed event (alert/warn) that isn't within a labelled fall
    (2 s before its start to 60 s after its end).
 3. Motion of really fallen people (labelled fall end + 4 s): what floor_moving_bl_s has to stay above so a fallen
-   person isn't called "moving". With --urfall, also people on the floor *on purpose* (UR Fall ADL look-alikes
+   person isn't called "moving". With --extra, also people on the floor *on purpose* (look-alike rows, e.g. UR Fall ADL
    outside bed/sofa): what it has to stay below so they are.
 """
 import argparse
@@ -81,8 +81,9 @@ def le2i_clips(root, base):
         yield from staged_clips(Path(root) / room / room / "Videos", base, f"{room}/")
 
 
-def urfall_clips(root, base):
-    yield from staged_clips(Path(root) / "Videos", base, "urfall/") if root else ()
+def extra_clips(folders, base):
+    for f in folders:
+        yield from staged_clips(Path(f), base, f"{Path(f).parent.name}/")
 
 
 def mcfd_clips(root, base):
@@ -99,7 +100,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("mcfd")
     ap.add_argument("le2i")
-    ap.add_argument("--urfall", help="UR Fall folder prepared by scripts/urfall_labels.py")
+    ap.add_argument("--extra", nargs="*", default=[], help="more labels.csv folders (urfall_labels.py, cauca_labels.py)")
     ap.add_argument("--hold", type=float, default=70)
     a = ap.parse_args()
     base = pipeline.load_rules()
@@ -107,12 +108,13 @@ def main():
     no_rec = live_cfg["live"]["no_recovery_s"]
 
     # 1. stayed down
-    for title, clips in (("Le2i", le2i_clips(a.le2i, base)), ("UR Fall", urfall_clips(a.urfall, base))):
+    for title, clips in [("Le2i", le2i_clips(a.le2i, base))] + [(Path(f).parent.name, staged_clips(Path(f), base))
+                                                                for f in a.extra]:
         stayed_down(title, clips, a.hold, base, no_rec)
 
     # 2. false pushes
     secs, false, by_type = 0.0, 0, Counter()
-    for gen in (mcfd_clips(a.mcfd, base), le2i_clips(a.le2i, base), urfall_clips(a.urfall, base)):
+    for gen in (mcfd_clips(a.mcfd, base), le2i_clips(a.le2i, base), extra_clips(a.extra, base)):
         for name, frames, meta, rows, zones in gen:
             secs += meta["duration"]
             for e in replay(frames, meta, zones if zones and zones.exists() else None):
@@ -120,12 +122,12 @@ def main():
                                                      for r in rows if r["kind"] in es.FALLS):
                     false += 1
                     by_type[e["type"]] += 1
-    print(f"\n2. FALSE PUSHES (raw clips, MCFD + Le2i{' + UR Fall' if a.urfall else ''}, {secs / 3600:.1f} h of video): "
+    print(f"\n2. FALSE PUSHES (raw clips, MCFD + Le2i{''.join(' + ' + Path(f).parent.name for f in a.extra)}, {secs / 3600:.1f} h of video): "
           f"{false} = {false / (secs / 3600):.1f}/h  by type {dict(by_type)}")
 
     # 3. how much do people on the floor move? fallen (should be below the threshold) vs on purpose (above)
     fallen, purpose = [], []
-    for gen in (mcfd_clips(a.mcfd, base), le2i_clips(a.le2i, base), urfall_clips(a.urfall, base)):
+    for gen in (mcfd_clips(a.mcfd, base), le2i_clips(a.le2i, base), extra_clips(a.extra, base)):
         for name, frames, meta, rows, zones in gen:
             if not rows:
                 continue
@@ -139,7 +141,7 @@ def main():
                     if len(down) >= 6:
                         (fallen if r["kind"] in es.FALLS else purpose).append(events.motion(down, down[0]["t"], down[-1]["t"]))
     thr = base["floor_moving_bl_s"]
-    for label, vals in (("fallen (first 4 s)", fallen), ("on the floor on purpose (UR Fall ADL)", purpose)):
+    for label, vals in (("fallen (first 4 s)", fallen), ("on the floor on purpose (look-alikes)", purpose)):
         if not vals:
             continue
         vals.sort()

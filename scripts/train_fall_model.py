@@ -1,12 +1,12 @@
 """Train a small neural network to spot falls from pose keypoints, and compare it with the rules on held-out data.
 
-Usage: python scripts/train_fall_model.py "C:/.../archive (4)" D:/datasets/le2i [--urfall D:/datasets/urfall] [--epochs 40]
+Usage: python scripts/train_fall_model.py "C:/.../archive (4)" D:/datasets/le2i [--extra D:/datasets/urfall/Videos ...] [--epochs 40]
 Writes models/fall_gru.pt and prints validation + test results. Explained step by step in learning/TRAINING.md.
 
 Data: the cached YOLO output of MCFD (192 clips) and Le2i (130 clips), tracked with tracks.build exactly like the
 rules see it. Splits (by scenario/room, never by frame, so the same fall can't be in two splits):
   train = MCFD chute01-12 + Le2i Coffee_room_01        -> the weights are fitted here
-          (+ all of UR Fall with --urfall: 30 falls, 16 lying down on purpose, 24 other; val/test stay the same)
+          (+ every --extra labels.csv folder, e.g. UR Fall, CAUCAFall; val/test stay the same)
   val   = MCFD chute13-16 + Le2i Coffee_room_02        -> stop training / pick the threshold here
   test  = MCFD chute17-24 + Le2i Home_01/02            -> reported once, never used for any choice
 One sample = one person's last 3 s (18 steps at 6 fps). Label 1 if a labelled fall started 1-3 s before the end
@@ -167,8 +167,8 @@ def evaluate(clips, found):
     return hits, falls, fa, fa / (secs / 3600)
 
 
-def urfall(folder, base):
-    """UR Fall clips in tc.load's format, last frame held 10 s like Le2i (the clips stop right after the fall)."""
+def extra(folder, base):
+    """labels.csv clips in tc.load's format, last frame held 10 s like Le2i (the clips stop right after the fall)."""
     out = []
     for _, frames, meta, rows, _ in tc.el.staged_clips(folder, base):
         es.hold(frames, meta, 10, base["sample_fps"])
@@ -181,10 +181,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("mcfd")
     ap.add_argument("le2i")
-    ap.add_argument("--urfall", help="UR Fall folder prepared by scripts/urfall_labels.py: added to train only")
+    ap.add_argument("--extra", nargs="*", default=[], help="labels.csv folders added to train only")
     ap.add_argument("--epochs", type=int, default=40)
+    ap.add_argument("--seed", type=int, default=0, help="repeat with other seeds: one run can be luck")
     a = ap.parse_args()
-    random.seed(0), np.random.seed(0), torch.manual_seed(0)
+    random.seed(a.seed), np.random.seed(a.seed), torch.manual_seed(a.seed)
     dev = "cuda" if torch.cuda.is_available() else "cpu"
 
     base = pipeline.load_rules()
@@ -198,8 +199,8 @@ def main():
     split = {"train": [c for c, v in zip(mcfd_tune, is_val_mcfd) if not v] + [c for i, c in enumerate(coffee) if i not in coffee2],
              "val": [c for c, v in zip(mcfd_tune, is_val_mcfd) if v] + [coffee[i] for i in coffee2],
              "test": data["test"]}
-    if a.urfall:
-        split["train"] += urfall(Path(a.urfall) / "Videos", base)
+    for f in a.extra:
+        split["train"] += extra(Path(f), base)
     series = {k: build(v, base) for k, v in split.items()}
     tr_idx = windows(series["train"], stride=3)
     va_idx = windows(series["val"], stride=3)

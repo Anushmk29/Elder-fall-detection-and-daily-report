@@ -4,7 +4,7 @@ Companion to [GUIDE.md](GUIDE.md). The code is one file, [scripts/train_fall_mod
 written to be read top to bottom. Run it yourself:
 
 ```powershell
-.venv\Scripts\python scripts\train_fall_model.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i
+.venv\Scripts\python scripts\train_fall_model.py "C:\Users\ABC\Downloads\archive (4)" D:\datasets\le2i --extra D:\datasets\urfall\Videos D:\datasets\cauca\Videos
 ```
 It takes ~5 minutes on the GTX 1650 (the YOLO output is already cached) and writes `models/fall_gru.pt`.
 Results of the three runs: `learning/results/train_run*.txt`.
@@ -124,8 +124,10 @@ The **threshold** is chosen on *validation*, with the same score the rules were 
 | 2 | + stay-down check | 37/101 = 37% | 12.5/h |
 | 3 | + mirroring augmentation | 35/101 = 35% | **7.9/h** |
 | 3 | rules **OR** model | **49/101 = 49%** | 17.8/h |
-| 4 | + **UR Fall in train** (`--urfall`: 30 falls, 16 lying down on purpose, 24 other) | **45/101 = 45%** | 12.5/h |
+| 4 | + **UR Fall in train** (`--extra`: 30 falls, 16 lying down on purpose, 24 other) | **45/101 = 45%** | 12.5/h |
 | 4 | rules **OR** model | **52/101 = 51%** | 19.8/h |
+| 5 | run 4, seeds 0/1/2 | 45 / 47 / 43% (mean **45%**) | 12.5 / 8.6 / 13.2 (mean 11.4/h) |
+| 5 | + **CAUCAFall** in train, seeds 0/1/2 | 46 / 49 / 61% (mean **52%**) | 9.2 / 11.9 / 14.5 (mean 11.9/h) |
 
 **What it means, in plain words:**
 1. **A model trained from scratch on ~200 falls is about as good as rules built by hand, not better.** It sits at
@@ -141,16 +143,21 @@ The **threshold** is chosen on *validation*, with the same score the rules were 
 5. **Run 4: one small extra dataset moved test recall by 10 points** (35 → 45%), more than every model change
    before it. Now the model beats the rules on both falls and false alarms. Val and test are unchanged, so it's a
    fair comparison, but it's one training run (one random seed): the next step is 3 seeds and CAUCAFall.
+6. **Run 5: 3 seeds each.** The same data and code, different random starting weights and batch order, gives
+   43–47% (UR) and 46–61% (UR + CAUCAFall). That spread is why one run proves little. Across all 6 runs the model
+   had fewer false alarms than the rules every time and caught more falls in 5. `--seed N` reruns it.
+   `models/fall_gru.pt` is the UR + CAUCAFall seed-0 model: the default seed, *not* the best test score, since
+   picking by test would make the test a tuning set.
 
-**Decision:** the model is **not** wired into the live system yet. It doesn't clearly beat the rules, and a
-component that doesn't earn its place is just more to maintain. The script and `models/fall_gru.pt` stay as the
-starting point for when there is more data.
+**Decision (after run 3):** not wired in: it didn't clearly beat the rules, and a component that doesn't earn
+its place is just more to maintain. **After run 5** it does beat them, consistently. Wiring it into `live.py` as a
+second fall signal is the next decision; it isn't done yet.
 
 ## 8. What would make the model win
 
 In order of expected value:
-1. **More falls, especially more look-alikes.** Done once: UR Fall (run 4, GUIDE §5.2). Next: CAUCAFall (home
-   setting, Mendeley Data), UP-Fall (17 people, 11 activities; needs a sign-up). Each one is another
+1. **More falls, especially more look-alikes.** Done: UR Fall (run 4) and CAUCAFall (run 5), GUIDE §5.2–5.3.
+   Next: UP-Fall (17 people, 11 activities; needs a sign-up). Each one is another
    `labels.csv` via a converter like `scripts/le2i_labels.py`. Keep splitting by scenario/person.
 2. **Better eyes:** the pose model still misses people lying on the floor (GUIDE §7 finding 4). Fine-tuning YOLO
    pose on floor frames would help both rules *and* model. Le2i even ships a person box per frame, a start for
