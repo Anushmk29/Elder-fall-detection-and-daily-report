@@ -6,6 +6,7 @@ from .tracks import body_len
 
 KP_CONF = 0.3
 ACTIVE = {"standing", "walking", "running", "bending"}
+UPRIGHT = {"standing", "bending"}  # a fall can start bent over (picking something up); sitting -> lying is lying down
 
 
 def in_poly(x, y, poly):
@@ -36,32 +37,76 @@ def hip_y(s):
     return sum(hips) / len(hips) if hips else (s["box"][1] + s["box"][3]) / 2
 
 
+def _height(s):
+    return s["box"][3] - s["box"][1]
+
+
 def detect_falls(samples, cfg):
-    """upright -> lying within window_s, hips drop >= hip_drop_frac body heights, stays down >= min_down_s."""
+    """A fall is one of
+    - standing/bending -> lying within window_s, with a real drop (hips down >= hip_drop_frac body heights, or the
+      box shrinks to <= height_ratio of its upright height: what a high camera sees), down >= min_down_s;
+    - standing/bending -> hips down >= floor_drop_frac body heights within floor_window_s and not standing again
+      for min_down_s (falling towards the camera keeps the torso upright in the image, so it reads as sitting)."""
     found, k, n = [], 1, len(samples)
+    floor_frac, floor_win = cfg.get("floor_drop_frac", 0), cfg.get("floor_window_s", 0)
     while k < n:
         s = samples[k]
-        if s["posture"] != "lying" or samples[k - 1]["posture"] == "lying":
-            k += 1
-            continue
-        upright = [p for p in samples[:k] if p["posture"] == "standing" and 0 < s["t"] - p["t"] <= cfg["window_s"]]
-        if not upright:
+        upright = [p for p in samples[:k] if p["posture"] in UPRIGHT and 0 < s["t"] - p["t"] <= cfg["window_s"]]
+        if s["posture"] in UPRIGHT or not upright:
             k += 1
             continue
         u = upright[0]
-        h = u["box"][3] - u["box"][1]
-        if hip_y(s) - hip_y(u) < cfg["hip_drop_frac"] * h:
+        h = _height(u)
+        drop = hip_y(s) - hip_y(u)
+        lying = (s["posture"] == "lying" and samples[k - 1]["posture"] != "lying"
+                 and (drop >= cfg["hip_drop_frac"] * h
+                      or _height(s) <= cfg.get("height_ratio", 0) * max(_height(p) for p in upright)))
+        fast = [p for p in upright if s["t"] - p["t"] <= floor_win]
+        floor = floor_frac and fast and max(hip_y(s) - hip_y(p) - floor_frac * _height(p) for p in fast) >= 0
+        if not (lying or floor):
             k += 1
             continue
-        end = next((m for m in range(k + 1, n) if samples[m]["posture"] in ("standing", "sitting")), None)
+        up = ("standing", "sitting") if lying else ("standing",)  # got up: off the floor
+        end = next((m for m in range(k + 1, n) if samples[m]["posture"] in up), None)
         down_until = samples[end]["t"] if end is not None else samples[-1]["t"]
         if down_until - s["t"] < cfg["min_down_s"]:
             k += 1
             continue
         found.append({"t": s["t"], "t_end": down_until, "drop_s": round(s["t"] - upright[-1]["t"], 1),
+                      "zones": s.get("zones", []), "how": "lying" if lying else "floor_drop",
                       "got_up_s": round(down_until - s["t"], 1) if end is not None else None})
         k = end if end is not None else n
     return found
+
+
+def detect_vanish(samples, others, meta, cfg):
+    """An upright person drops and then nobody can be seen: COCO pose models often miss a body lying on the floor,
+    so losing someone right after their body dropped is itself a fall signature. Ignored when they were at the edge
+    of the view (walked out). Returns a fall dict like detect_falls, or None."""
+    gap = cfg.get("vanish_s", 0)
+    if not gap or not samples:
+        return None
+    last = samples[-1]
+    later = [s["t"] for o in others for s in o["samples"] if s["t"] > last["t"]]
+    seen_again = min(later) if later else None
+    if (seen_again if seen_again is not None else meta["duration"]) - last["t"] < gap:
+        return None
+    ref = [s for s in samples if last["t"] - 4 <= s["t"] < last["t"] - 1 and s["posture"] in UPRIGHT]
+    recent = [s for s in samples if s["t"] >= last["t"] - 1.5]
+    if not ref:
+        return None
+    h = sorted(_height(s) for s in ref)[len(ref) // 2]
+    hip0 = sorted(hip_y(s) for s in ref)[len(ref) // 2]
+    if not (min(_height(s) for s in recent) <= cfg.get("vanish_height_ratio", 0.8) * h
+            or max(hip_y(s) for s in recent) - hip0 >= cfg["hip_drop_frac"] * h):
+        return None
+    m = cfg.get("vanish_edge", 0.03)
+    x1, y1, x2, y2 = last["box"]
+    if x1 < m * meta["width"] or y1 < m * meta["height"] or x2 > (1 - m) * meta["width"] or y2 > (1 - m) * meta["height"]:
+        return None
+    end = seen_again if seen_again is not None else meta["duration"]
+    return {"t": last["t"], "t_end": end, "zones": last.get("zones", []), "how": "vanished",
+            "got_up_s": round(seen_again - last["t"], 1) if seen_again is not None else None}
 
 
 def runs(samples, pred, fps, min_s):
@@ -128,13 +173,20 @@ def analyze(tracks, meta, rules):
         if seg and seg["zone"]:
             timeline.append(seg)
 
-        for f in detect_falls(S, rules["fall"]):
+        falls = detect_falls(S, rules["fall"])
+        v = detect_vanish(S, [o for o in order if o is not tr], meta, rules["fall"])
+        if v and not any(abs(f["t"] - v["t"]) < 5 or f["got_up_s"] is None for f in falls):
+            falls.append(v)
+        for f in falls:
+            if set(f["zones"]) & rest:
+                continue  # lying down on the bed/sofa, not a fall
             got_up = f"got up in {f['got_up_s']:.0f} s" if f["got_up_s"] is not None else "had not got up when the clip ended"
+            how = ("dropped suddenly and could no longer be seen (possibly on the floor)" if f["how"] == "vanished"
+                   else f"went from upright to the floor in under {rules['fall']['window_s']:.0f} s")
             events.append({"type": "fall", "severity": "alert", "t": f["t"], "t_end": f["t_end"], "who": who,
-                           "got_up_s": f["got_up_s"],
+                           "got_up_s": f["got_up_s"], "how": f["how"],
                            "banner": f"FALL DETECTED · {who}", "title": "Fall detected",
-                           "detail": f"{who} went from upright to lying in under {rules['fall']['window_s']:.0f} s "
-                                     f"and {got_up}."})
+                           "detail": f"{who} {how}, and {got_up}."})
         for a, b in runs(S, lambda s: s["posture"] == "lying" and not set(s["zones"]) & rest,
                          fps, rules["lying_outside_rest_s"]):
             events.append({"type": "lying_outside_rest", "severity": "warn", "t": a, "t_end": b, "who": who,

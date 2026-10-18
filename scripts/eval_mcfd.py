@@ -26,7 +26,7 @@ from app.posture import classify  # noqa: E402
 
 FPS = 30.0
 WINDOW_PAD = (2.0, 4.0)  # seconds before / after a labelled window that still count as that fall
-CACHE = pipeline.DATA_DIR / "mcfd_cache"
+CACHE_ROOT = pipeline.DATA_DIR / "mcfd_cache"  # one folder per pose model + detection confidence
 
 
 def fall_windows(csv_path):
@@ -48,15 +48,19 @@ def fall_windows(csv_path):
     return out
 
 
+def cache_dir(rules):
+    return CACHE_ROOT / f"{Path(perception.MODEL_PATH).stem}-c{rules.get('det_conf', 0.25)}"
+
+
 def load_frames(video, rules):
-    cache = CACHE / f"{video.parent.name}_{video.stem}.json.gz"
+    cache = cache_dir(rules) / f"{video.parent.name}_{video.stem}.json.gz"
     if cache.exists():
         data = json.loads(gzip.decompress(cache.read_bytes()))
     else:
         t0 = time.time()
         frames, meta = perception.analyze(video, rules)
         data = {"frames": frames, "meta": meta}
-        CACHE.mkdir(parents=True, exist_ok=True)
+        cache.parent.mkdir(parents=True, exist_ok=True)
         cache.write_bytes(gzip.compress(json.dumps(data).encode()))
         print(f"  {video.parent.name}/{video.name}: {meta['duration']:.0f} s of video in {time.time() - t0:.0f} s")
     for f in data["frames"]:
@@ -76,6 +80,7 @@ def main():
     ap.add_argument("--rules", help="yaml overriding rules.yaml")
     ap.add_argument("--only", help="e.g. chute20")
     ap.add_argument("--list", action="store_true", help="print every clip, not just misses and false alarms")
+    ap.add_argument("--cached", action="store_true", help="only clips already in the cache (no YOLO)")
     a = ap.parse_args()
 
     root = Path(a.root)
@@ -91,6 +96,8 @@ def main():
         if a.only and video.parent.name != a.only:
             continue
         chute, cam = int(video.parent.name[5:]), int(video.stem[3:])
+        if a.cached and not (cache_dir(rules) / f"{video.parent.name}_{video.stem}.json.gz").exists():
+            continue
         frames, meta = load_frames(video, rules)
         meta.update(meta_extra)
         seconds += meta["duration"]

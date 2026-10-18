@@ -24,11 +24,28 @@ def body_len(s):
     return max(x2 - x1, y2 - y1, 1.0)
 
 
+def _inside(a, b):
+    """Fraction of box a's area that lies inside box b."""
+    w = min(a[2], b[2]) - max(a[0], b[0])
+    h = min(a[3], b[3]) - max(a[1], b[1])
+    return max(w, 0) * max(h, 0) / max((a[2] - a[0]) * (a[3] - a[1]), 1e-6)
+
+
+def dedupe(people, cover):
+    """Drop a detection mostly inside a more confident one: a low detection threshold returns partial duplicate
+    boxes of the same person, which would otherwise start bogus tracks."""
+    keep = []
+    for p in sorted(people, key=lambda p: -p["conf"]):
+        if all(_inside(p["box"], q["box"]) < cover for q in keep):
+            keep.append(p)
+    return keep
+
+
 def build(frames, meta, rules):
     cfg = rules["tracks"]
     raw = defaultdict(list)
     for f in frames:
-        for p in f["people"]:
+        for p in dedupe(f["people"], cfg.get("dedupe_cover", 1.01)):
             raw[p["id"]].append({"i": f["i"], "t": f["t"], **p})
     tracks = sorted(({"id": k, "samples": v} for k, v in raw.items()), key=lambda tr: tr["samples"][0]["t"])
     tracks = rejoin(tracks, cfg["rejoin_gap_s"], cfg["rejoin_dist_bl"], cfg["run_bh_per_s"])

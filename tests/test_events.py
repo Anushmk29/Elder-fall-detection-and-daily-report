@@ -56,3 +56,45 @@ def test_lying_outside_rest_zone_and_resident_role():
     res = events.analyze(trk + [visitor], META, rules)
     assert res["people"][0]["label"] == "Resident"
     assert any(e["type"] == "lying_outside_rest" for e in res["events"])
+
+
+def sit_kp(hip_y):
+    return kp_person(head=(500, hip_y - 180), shoulder=(500, hip_y - 120), hip=(500, hip_y), knee=(560, hip_y + 5),
+                     ankle=(560, hip_y + 80))
+
+
+def test_fall_towards_camera_reads_as_sitting_but_is_a_fall():
+    s = [sample(t / 6, "standing", STAND_BOX, stand_kp()) for t in range(0, 24)]              # hips at y 500
+    s += [sample(t / 6, "sitting", [440, 600, 600, 900], sit_kp(820)) for t in range(24, 60)]  # hips -0.8 bh in 1/6 s
+    falls = events.detect_falls(s, RULES["fall"])
+    assert len(falls) == 1 and falls[0]["how"] == "floor_drop" and falls[0]["got_up_s"] is None
+
+
+def test_sitting_down_on_a_chair_is_not_a_fall():
+    s = [sample(t / 6, "standing", STAND_BOX, stand_kp()) for t in range(0, 24)]
+    s += [sample(t / 6, "sitting", [440, 420, 600, 700], sit_kp(620)) for t in range(24, 60)]  # hips -0.3 bh
+    assert events.detect_falls(s, RULES["fall"]) == []
+
+
+def test_lying_down_on_the_sofa_is_not_a_fall():
+    rules = {**RULES, "zones": [{"name": "Sofa", "kind": "rest", "polygon": [[0, 0], [1, 0], [1, 1], [0, 1]]}]}
+    trk = make_track([(0, 4, "standing"), (4, 9, "lying")])
+    assert not [e for e in events.analyze(trk, META, rules)["events"] if e["type"] == "fall"]
+
+
+def build(samples):
+    return tracks.build([{"i": x["i"], "t": x["t"], "people": [x]} for x in samples], META, RULES)
+
+
+def test_drop_then_vanish_mid_room_is_a_fall():
+    s = [sample(t / 6, "standing", STAND_BOX, stand_kp()) for t in range(0, 24)]
+    s += [sample(t / 6, "bending", [430, 500, 600, 700], sit_kp(640)) for t in range(24, 30)]  # box halves, then gone
+    res = events.analyze(build(s), {**META, "duration": 40}, RULES)
+    fall = [e for e in res["events"] if e["type"] == "fall"]
+    assert len(fall) == 1 and fall[0]["how"] == "vanished" and fall[0]["got_up_s"] is None
+
+
+def test_walking_out_of_view_is_not_a_fall():
+    s = [sample(t / 6, "standing", [880, 300, 1000, 700], stand_kp()) for t in range(0, 30)]  # at the right edge
+    res = events.analyze(build(s), {**META, "duration": 40}, RULES)
+    assert not [e for e in res["events"] if e["type"] == "fall"]

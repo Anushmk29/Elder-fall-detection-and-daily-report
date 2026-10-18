@@ -8,6 +8,7 @@ DEFAULTS = {
     "lying_torso": 60,      # torso this far from vertical (deg) -> lying candidate
     "lying_aspect": 1.4,    # box w/h when no torso is visible
     "lying_min_aspect": 0.9,
+    "lying_torso_wide": 45, # ...or this far from vertical when the box is at least lying_aspect wide
     "bend_torso": 30,
     "sit_thigh": 50,        # thigh this far from vertical -> sitting
     "sit_thigh_ratio": 0.5, # thigh shorter than this x torso (foreshortened, facing camera) -> sitting
@@ -49,6 +50,8 @@ def classify(box, kp, th=None):
         return "lying" if f["aspect"] >= th["lying_aspect"] else "standing"
     if torso >= th["lying_torso"] and (f["aspect"] >= th["lying_min_aspect"] or (thigh or 0) >= th["lying_torso"]):
         return "lying"
+    if torso >= th["lying_torso_wide"] and f["aspect"] >= th["lying_aspect"]:
+        return "lying"  # high/fisheye cameras foreshorten a body on the floor: tilted torso in a wide box
     if torso >= th["bend_torso"]:
         return "bending"
     if thigh is None:

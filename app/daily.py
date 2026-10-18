@@ -185,7 +185,7 @@ def report(day, ai=None):
                  f" · {active}{mark('active_min')}")
 
     third = ["No falls." if not m["falls"] else
-             "; ".join(f"Fall at {x['at']}: {x['detail']}" for x in m["falls"]) + " ⚠️"]
+             "; ".join(f"Fall at {x['at']}: {x['detail'].rstrip('.')}" for x in m["falls"]) + ". ⚠️"]
     r = m["rest_longest"]
     if r and m["rest_longest_min"] >= 30:
         longer = " which is longer than usual" if f.get("rest_longest_min") == "high" else ""

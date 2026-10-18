@@ -3,6 +3,7 @@
 # Zones are per camera: videos/<name>.yaml for examples, `rules:` per camera in cameras.yaml.
 sample_fps: 6
 imgsz: 640
+det_conf: 0.15            # person detection threshold; people lying on the floor score low with COCO pose models
 clock_start: "09:00:00"   # clock time at the start of a clip (override per camera or with --clock)
 face_blur: false
 
@@ -16,6 +17,7 @@ posture:                  # degrees from vertical / box ratios, see app/posture.
   legs_hidden: standing   # knees out of view: standing (counter); set sitting per camera for tables/sofas
 
 tracks:
+  dedupe_cover: 0.6       # drop a detection this much inside a more confident one (duplicate partial boxes)
   min_samples: 12         # drop tracks seen for less than ~2 s (passers-by, false positives)
   smooth_window: 5        # posture majority vote, in samples
   rejoin_gap_s: 3.0       # re-join a broken ID if it reappears within this gap...
@@ -26,8 +28,12 @@ tracks:
 
 fall:
   window_s: 2.0           # upright -> lying within this time
-  hip_drop_frac: 0.25     # hips drop at least this fraction of body height
+  hip_drop_frac: 0.25     # hips drop at least this fraction of body height...
+  height_ratio: 0.7       # ...or the box shrinks to this fraction of its upright height (high cameras)
+  floor_drop_frac: 0.6    # or, without 'lying': hips drop this many body heights...
+  floor_window_s: 1.0     # ...this fast (a fall towards the camera reads as sitting)
   min_down_s: 2.0         # and stay down at least this long
+  vanish_s: 3.0           # or: the body drops, then nobody is seen for this long (lying people are often missed)
 
 lying_outside_rest_s: 120
 stillness:

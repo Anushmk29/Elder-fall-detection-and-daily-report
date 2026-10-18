@@ -63,7 +63,7 @@ def _detect(model, tracker, fragment_ids, frame, rules):
     """ByteTrack driven directly (not model.track) so detections it hasn't confirmed are kept too: at 6 fps a
     running person's box often has zero IoU with the last one, and ByteTrack would hide them. Those get a unique
     negative id and tracks.rejoin() stitches them back together."""
-    r = model.predict(frame, imgsz=rules["imgsz"], device=DEVICE, conf=0.25, verbose=False)[0]
+    r = model.predict(frame, imgsz=rules["imgsz"], device=DEVICE, conf=rules.get("det_conf", 0.25), verbose=False)[0]
     det = r.boxes.cpu().numpy()
     tracked = tracker.update(det, frame)  # rows: x1, y1, x2, y2, id, score, cls, det_index
     id_of = {int(row[-1]): int(row[4]) for row in tracked}
