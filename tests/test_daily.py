@@ -49,3 +49,43 @@ def test_routine_metrics_and_report():
     assert flags["rest_longest_min"] == "high"
     assert "Woke 6:52 (usual 6:50–6:50) ✅" in text and "Lay in the living room 14:00–16:05" in text
     assert "longer than usual" in text and "Night: up at 02:40 for 8 min (bathroom)" in text
+
+
+def test_a_house_without_kitchen_or_bathroom_cameras_gets_a_path_not_zeros():
+    write_day([
+        ev("07:10", "zone_enter", "liv", "Living room"), ev("07:10", "posture_change", "liv", "Living room", "sitting"),
+        ev("08:50", "posture_change", "liv", "Living room", "standing"), ev("09:00", "zone_exit", "liv", "Living room"),
+        ev("09:01", "zone_enter", "st", "Outside stairs"), ev("09:02", "zone_exit", "st", "Outside stairs"),
+        ev("09:03", "zone_enter", "gar", "Garden"), ev("09:40", "zone_exit", "gar", "Garden"),  # one trip out
+        ev("09:42", "zone_enter", "liv", "Living room"), ev("12:00", "zone_exit", "liv", "Living room"),
+        ev("11:00", "zone_enter", "por", "Porch"), ev("11:05", "zone_exit", "por", "Porch"),  # while she's inside
+    ])
+    m = daily.metrics(DAY)
+    assert m["kitchen_visits"] is None and m["bathroom_count"] is None
+    assert [p["room"] for p in m["places"]][:2] == ["Living room", "Garden"]
+    assert m["places"][0]["postures"]["sitting"] == 100
+    assert m["outings"][0] == {"from": "09:01", "to": "09:40", "min": 39, "rooms": ["Outside stairs", "Garden"]}
+    assert m["together"] == [{"at": "11:00", "rooms": ["Living room", "Porch"]}]
+    text = daily.report(DAY)[0]
+    assert "kitchen" not in text and "Bathroom" not in text and "First up 8:50" in text
+    assert "Went outside 2×: 09:01–09:40 (outside stairs, garden)" in text and "Someone else was around" in text
+
+
+def test_ai_reviews_give_the_postures_and_activities():
+    def review(hm, cam, room, postures, activity):
+        return {**ev(hm, "ai_review", cam, room), "title": activity,
+                "ai": {"postures": postures, "activity": activity, "fall": "NO", "span_s": 30}}
+    write_day([
+        ev("11:20", "zone_enter", "side", "Side path"), ev("11:20", "posture_change", "side", "Side path", "lying"),
+        review("11:20", "side", "Side path", {"bending": 12, "standing": 3}, "sweeping the path"),
+        review("11:27", "gar", "Garden", {"bending": 15}, "Sweeping the path"),
+        {**ev("11:26", "fall_dismissed", "side", "Side path"), "detail": "AI: sweeping"},
+        ev("11:40", "zone_exit", "side", "Side path"),
+    ])
+    m = daily.metrics(DAY)
+    assert m["active_min"] == 1 and m["lying_min"] == 0  # 30 frames x 2 s; the pose model's "lying" is ignored
+    assert m["activities"] == [{"activity": "sweeping the path", "min": 1.0,
+                                "rooms": {"Side path": "11:20", "Garden": "11:27"}}]
+    text = daily.report(DAY)[0]
+    assert "Seen doing (AI): sweeping the path (Side path 11:20, Garden 11:27)." in text
+    assert "(AI-checked)" in text and "No falls." in text and "AI check: 1 possible fall looked at, not a fall." in text

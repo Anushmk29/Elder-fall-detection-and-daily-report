@@ -39,9 +39,9 @@ class Jobs:
         job_id = secrets.token_urlsafe(18)  # unguessable; doubles as the result id
         return job_id, self.uploads / f"{job_id}{ext}"
 
-    def submit(self, job_id, path):
+    def submit(self, job_id, path, name=""):
         self._write({"id": job_id, "status": "queued", "progress": 0, "stage": "Waiting in queue",
-                     "created": time.time(), "file": Path(path).name})
+                     "created": time.time(), "file": Path(path).name, "name": name[:120]})
         self._enqueue(job_id)
 
     def get(self, job_id):
@@ -51,6 +51,21 @@ class Jobs:
                 st["queue_position"] = self.waiting.index(job_id) + 1 if job_id in self.waiting else 0
             st.pop("file", None)
         return st
+
+    def all(self):
+        """Every job still kept (newest first), for the local history page."""
+        out = [self._read(p.stem) for p in self.jobs_dir.glob("*.json")]
+        return sorted((st for st in out if st), key=lambda st: st["created"], reverse=True)
+
+    def delete(self, job_id):
+        """Remove a finished job's result, upload and state. False if unknown or still running."""
+        st = self._read(job_id) if ID_RE.match(job_id or "") else None
+        if not st or st["status"] in ("queued", "processing"):
+            return False
+        shutil.rmtree(self.results / job_id, ignore_errors=True)
+        (self.uploads / st["file"]).unlink(missing_ok=True)
+        (self.jobs_dir / f"{job_id}.json").unlink(missing_ok=True)
+        return True
 
     def queued(self):
         return len(self.waiting)

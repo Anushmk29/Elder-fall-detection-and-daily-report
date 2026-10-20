@@ -106,10 +106,10 @@ def _annotate(frame, items, sx, sy, zone_layer, zone_mask, zones, banners, ft, m
         kp = [(int(x * sx), int(y * sy), c) for x, y, c in smp["kp"]]
         for a, b in SKELETON:
             if kp[a][2] >= KP_CONF and kp[b][2] >= KP_CONF:
-                cv2.line(frame, kp[a][:2], kp[b][:2], color, 2, cv2.LINE_AA)
+                cv2.line(frame, kp[a][:2], kp[b][:2], color, 1, cv2.LINE_AA)
         for x, y, c in kp:
             if c >= KP_CONF:
-                cv2.circle(frame, (x, y), 3, (255, 255, 255), -1, cv2.LINE_AA)
+                cv2.circle(frame, (x, y), 2, (255, 255, 255), -1, cv2.LINE_AA)
         x1, y1, x2, y2 = smp["box"]
         p1, p2 = (int(x1 * sx), int(y1 * sy)), (int(x2 * sx), int(y2 * sy))
         cv2.rectangle(frame, p1, p2, color, 1, cv2.LINE_AA)

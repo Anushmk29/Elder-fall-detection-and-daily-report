@@ -10,6 +10,7 @@
 <body>
 <header class="top">
   <a class="brand" href="/">ElderCare <span>Guardian</span></a>
+  <nav class="nav" aria-label="Main"><a href="/">Analyse a clip</a><a href="/day">Day replay</a><a href="/live" aria-current="page">Live</a><a href="/live/report">Report</a><a href="/history">History</a></nav>
   <span class="pill" id="status">Starting…</span>
 </header>
 <main>
@@ -19,7 +20,9 @@
       <h1 id="where">Waiting for cameras…</h1>
       <p class="muted" id="sub"></p>
     </div>
-    <a class="button-link" id="report" href="/live/report">Today's report</a>
+    <span><button id="toggle" type="button" hidden>Start live</button>
+      <a class="button-link" href="/day">Add a day's videos</a>
+      <a class="button-link" id="report" href="/live/report">Today's report</a></span>
   </section>
 
   <div id="banner" class="live-banner" hidden></div>

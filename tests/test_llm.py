@@ -68,3 +68,46 @@ def test_floor_verdict_parses_one_word(tmp_path, monkeypatch):
         assert llm.LLM(tmp_path / answer[:4], client(h)).floor_verdict(img) == want
     monkeypatch.delenv("OPENROUTER_API_KEY")
     assert llm.LLM(tmp_path, client(h)).floor_verdict(img) is None   # no key: no call, rules decide
+
+
+def test_ai_fall_check_adds_alert_only_on_fallen(tmp_path):
+    from app import pipeline
+
+    class Fake:
+        def __init__(self, words):
+            self.words = words
+
+        def floor_verdict(self, path, prompt):
+            return self.words.pop(0)
+
+    caps = [{"t": t, "clock": f"09:00:{t:02d}", "img": f"strip{t}.jpg"} for t in (1, 5, 9)]
+    for words, fell in ((["NO", "FALLEN"], True), (["NO", None], False)):
+        an = {"events": [], "glance": [{"label": "Alerts", "value": "0", "note": "0 fall(s)", "tone": "ok"}]}
+        pipeline.ai_fall_check(Fake(words), tmp_path, caps, an, {})
+        assert bool(an["events"]) == fell
+        assert an["glance"][0]["value"] == ("1" if fell else "0")
+    assert an["events"] == [] and caps[-1]["img"] == "strip9.jpg"
+
+
+def test_fall_check_and_review_parse_the_answers(tmp_path, monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    answers = ["NO - bent over sweeping", "FALLEN", "maybe?",
+               '```json\n{"people": 1, "postures": {"standing": 3, "bending": [1, 2, 3, 4, 5, 6, 7, 8, 9]}, "activity": "Sweeping", "fall": "no"}\n```',
+               "not json"]
+    sent = []
+
+    def h(req):
+        sent.append(json.loads(req.content))
+        return httpx.Response(200, json={"choices": [{"message": {"content": answers.pop(0)}}], "usage": {"cost": 0.0003}})
+    ai = llm.LLM(tmp_path, client=client(h))
+    img = tmp_path / "s.jpg"
+    for k in range(3):
+        img.write_bytes(b"jpg%d" % k)  # a different image each time, so the cache doesn't answer
+        got = ai.fall_check(img)
+        assert got == [("NO", "bent over sweeping"), ("FALLEN", ""), (None, "")][k]
+    r = ai.review([b"a", b"b"], "Porch")
+    assert r["postures"] == {"standing": 3, "walking": 0, "sitting": 0, "bending": 9, "lying": 0}
+    assert r["fall"] == "NO" and r["activity"] == "Sweeping"
+    assert len([c for c in sent[-1]["messages"][0]["content"] if c["type"] == "image_url"]) == 2
+    assert ai.review([b"c"], "Porch") is None
+    assert sent[0]["reasoning"] == {"enabled": False}

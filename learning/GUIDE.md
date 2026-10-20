@@ -398,6 +398,8 @@ parameters to data. Here there are 4 parameters, not millions.
 | 10 | The 5 "lying but missed": first lying frame is mid-fall (box 0.75 of upright vs threshold 0.7). `settle_s` grid | tune → **test** | tune 91 → 97/195; **test 37 → 44/101** | tune +1, test ±0 | A sampling-rate bug, not a threshold problem: look at the frames |
 | 11 | Rest zones per Le2i camera view; collapse grid again | tune | zones cost 3 falls (trigger frame mid-fall next to a bench) → fixed by judging the zone where the person settles: 97/195 with or without zones | test −1 FA | Zones are a trade-off: they also hide falls *next to* furniture. Path D still loses on MCFD |
 | 12 | **Trained GRU** on keypoint sequences (TRAINING.md), mirror augmentation, threshold on val | **test** | model 35% · rules 44% · rules OR model 49% | 7.9/h · 15.8/h · 17.8/h | ~200 falls: a learned model ties hand-written rules; they make different mistakes |
+| 20 | **`imgsz` 960 instead of 640** (yolo11m-pose, GPU), live engine + GRU, own YOLO cache | **test** (same as run 19) | FALL ALERT 28 → **26/37**; family told 76% → **70%** | 3.0/h → **3.7/h** | Dropped. Also too slow: 0.7× real time for *one* camera on the GTX 1650. More pixels didn't help: the misses are angle/occlusion, not size |
+| 19 | **GRU wired into the live engine** as a second fall signal (`live.fall_model`; a hit = fall at t-1 s, needs `confirm_s` 5 s still down, then the same 30 s state machine). Decided before the run: keep it only if more falls reach the family with no extra false pushes | **test** (Le2i Home held 70 s; MCFD 17-24 + Le2i Home raw) | FALL ALERT 24 → **28/37**; family told 68% → **76%**, median 31 s | 3.0/h → **3.0/h** (all 'fell, got up' check-ins from the rules; the model alone never pushes those) | Kept on. The model's falls are the slumped/foreshortened ones the rules read as sitting |
 | 18 | **GRU, 3 seeds each**: + UR Fall, and + UR Fall + CAUCAFall (TRAINING.md run 5) | **test** | UR: 45/47/43% (mean **45%**); UR+CAUCA: 46/49/61% (mean **52%**); rules 44% | UR 11.4/h; UR+CAUCA 11.9/h; rules 15.8/h | Fewer false alarms than the rules in 6/6 runs, more falls in 5/6: not luck. Seeds spread ±8 points: report the spread, not the best run |
 | 17 | **CAUCAFall, never tuned on** (`eval_staged --hold 10`, `eval_live --extra`) | 49 falls, 50 ADL | fall seen **63%**; family told **63%** | 1 "possible fall" (logged, picking up an object); 0 false pushes | 8 of 9 *forward* falls missed: the high corner camera sees a forward fall head-on, so it's foreshortened, not "lying" |
 | 16 | **GRU + UR Fall in train** (TRAINING.md run 4; val/test unchanged) | **test** | model **45%** · rules 44% · rules OR model 51% | 12.5/h · 15.8/h · 19.8/h | +70 clips (incl. 16 look-alikes) and the model now beats the rules on both axes. One seed: encouraging, not proven |
@@ -438,6 +440,11 @@ Findings in plain words:
 11. **Motion while on the floor is a weak cue, now measured from both sides.** Fallen: median 0.16 body lengths/s
     (90% below 0.40). On the floor on purpose (UR ADL, only 5 usable): median 0.37. They overlap, so `0.4` stays a
     wording choice between alert and warn, never a reason not to tell the family.
+12. **Filter the same way everywhere.** The live stream showed one seated person as two overlapping skeletons
+    and "3 person(s)": with `det_conf: 0.15` the model returns partial duplicate boxes, and only `tracks.build`
+    (the rules) dropped them, not the live overlay or its person count. The live loop now runs the same
+    `tracks.dedupe` right after detection (living-room clip: 53 → 50 detections, duplicates in 3 of 50 frames).
+    Skeleton lines are now 1 px thick, so the person underneath stays visible.
 
 ---
 
@@ -473,8 +480,8 @@ them over 3 seeds (runs 16, 18).
   "no fall" clips, not as on-the-floor stretches). Not a calibration.
 - **Forward falls towards a high camera** (CAUCAFall: 8 of 9 missed): foreshortened, neither "lying" nor much
   lower. A detector fine-tune on such frames, or the GRU, which already learns from them.
-- **The GRU now beats the rules** over 3 seeds (run 18). Wiring it into `live.py` as a second fall signal (rules OR
-  model) is the next decision; it isn't done.
+- **The GRU now beats the rules** over 3 seeds (run 18), and is wired into `live.py` as a second fall signal
+  (run 19: 76% of stay-down test falls reach the family, no extra false pushes).
 - **Real-home numbers:** false alerts per *day* need a laptop running for days with real cameras. Datasets give
   per hour of acted video, which is far busier than a real day.
 - **Stays POC-only:** YOLO is AGPL; a product would swap to a permissively licensed pose model (MediaPipe).

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>History</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">ElderCare <span>Guardian</span></a>
+  <nav class="nav" aria-label="Main"><a href="/">Analyse a clip</a><a href="/day">Day replay</a><a href="/live">Live</a><a href="/live/report">Report</a><a href="/history" aria-current="page">History</a></nav>
+</header>
+<main>
+  <section class="live-head">
+    <div>
+      <p class="eyebrow">History</p>
+      <h1>Everything processed on this computer</h1>
+      <p class="muted">Deleting removes the files from this computer for good. Messages already sent to a phone stay
+        on the phone.</p>
+    </div>
+  </section>
+
+  <section class="card hist">
+    <div class="hist-head"><h2>Days</h2><button type="button" class="danger" data-all="day">Delete all days</button></div>
+    <p class="muted">Days from live cameras and Day replay: events, the daily report, replayed videos and snapshots.</p>
+    <div id="days"><p class="empty">Loading…</p></div>
+  </section>
+
+  <section class="card hist">
+    <div class="hist-head"><h2>Analysed clips</h2><button type="button" class="danger" data-all="upload">Delete all clips</button></div>
+    <p class="muted" id="keep">Clips uploaded on the home page.</p>
+    <div id="uploads"><p class="empty">Loading…</p></div>
+  </section>
+</main>
+<footer>Proof of concept, not a medical device. Footage stays on this computer.</footer>
+<script src="/static/history.js"></script>
+</body>
+</html>

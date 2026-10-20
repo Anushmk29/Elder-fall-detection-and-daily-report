@@ -24,7 +24,8 @@ REPORT_PROMPT = (
     "based only on automated video-analysis facts below (pose detection + simple rules, may contain errors). "
     "Warm, plain English, no medical diagnosis, no speculation beyond the facts. Format:\n"
     "A 3-5 sentence summary of the day.\n\nThings to check:\n- bullet\n- bullet\n"
-    "(1-4 bullets; if nothing needs attention say so in one bullet.)\n\nFacts (JSON):\n{facts}")
+    "(1-4 bullets; if no alert was found say so in one bullet, and that the camera can miss people who are far away, "
+    "at the edge of the view or lying down. Never say everything is fine.)\n\nFacts (JSON):\n{facts}")
 DAILY_NOTE_PROMPT = (
     "Below is today's automated routine summary for an older person living at home (camera pose detection and "
     "simple rules; it may contain errors). Write 1-2 warm, plain sentences for their family that mention only what "
@@ -35,6 +36,24 @@ FLOOR_PROMPT = (
     "A home camera shows an older person on the floor, outside the bed and sofa. Does this look like someone who "
     "has fallen or cannot get up, or like someone on the floor on purpose (exercise, sitting or resting on a mat, "
     "playing, looking for something)? Answer with exactly one word: FALLEN, DELIBERATE or UNSURE.")
+FALL_CHECK_PROMPT = (
+    "Three frames from a camera, left to right in time. Is anyone lying or sitting on the ground in a way that looks "
+    "like they have fallen? Answer with exactly one word: FALLEN, NO or UNSURE.")
+LOOK_ALIKES = ("Things that look like a fall to the automatic detector but are not: sweeping, bending, picking something "
+               "up, crouching, gardening, sitting on a step or chair, walking out of view.")
+FALL_VERIFY_PROMPT = (
+    "Three frames from a home camera, left to right in time (about 1 s before, 2 s after, and some seconds after a "
+    "possible fall). Boxes and stick figures are drawn by an automatic detector and can be wrong. " + LOOK_ALIKES +
+    " Someone who really fell may be partly hidden or lying at the edge of the view. Has someone fallen and is on, "
+    "or was on, the ground? Answer FALLEN, NO or UNSURE, then ' - ' and at most 8 words why.")
+REVIEW_PROMPT = (
+    "{n} frames from a home camera ({room}), 2 s apart, in time order. " + LOOK_ALIKES +
+    " Someone who really fell may be partly hidden or lying at the edge of the view. Reply with JSON only: "
+    '{{"people": <most people visible in one frame>, "postures": {{"standing": <frames>, "walking": <frames>, '
+    '"sitting": <frames>, "bending": <frames>, "lying": <frames>}}, "activity": "<what the main person is doing, at '
+    'most 5 words>", "fall": "FALLEN" | "NO" | "UNSURE", "why": "<at most 8 words>"}}. Posture values are whole numbers '
+    "of frames; each frame is counted under exactly one posture, for the main person; frames with nobody count nowhere.")
+POSTURES = ("standing", "walking", "sitting", "bending", "lying")
 
 
 class LLM:
@@ -46,11 +65,11 @@ class LLM:
         self.cap = float(os.environ.get("MAX_LLM_USD_PER_DAY", "2"))
         self.client = client or httpx.Client(timeout=60)
 
-    def chat(self, messages, max_tokens=400):
+    def chat(self, messages, max_tokens=400, extra=None):
         """Returns text, or None when there is no key, the daily cap is reached, or the call fails."""
         if not self.key:
             return None
-        ck = hashlib.sha256(json.dumps([self.model, messages, max_tokens]).encode()).hexdigest()
+        ck = hashlib.sha256(json.dumps([self.model, messages, max_tokens, extra]).encode()).hexdigest()
         cached = self.dir / "cache" / f"{ck}.json"
         if cached.exists():
             return json.loads(cached.read_text(encoding="utf-8"))["text"]
@@ -60,7 +79,7 @@ class LLM:
         try:
             r = self.client.post(API_URL, headers={"Authorization": f"Bearer {self.key}", "X-Title": "ElderCare demo"},
                                  json={"model": self.model, "messages": messages, "max_tokens": max_tokens,
-                                       "temperature": 0.3, "usage": {"include": True}})
+                                       "temperature": 0.3, "usage": {"include": True}, **(extra or {})})
             r.raise_for_status()
             data = r.json()
             text = (data["choices"][0]["message"]["content"] or "").strip()
@@ -96,14 +115,40 @@ class LLM:
             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}]}], max_tokens=80)
         return {"text": text, "ai": True} if text else {"text": context[:1].upper() + context[1:] + ".", "ai": False}
 
-    def floor_verdict(self, image_path):
-        """'FALLEN' | 'DELIBERATE' | 'UNSURE' | None (no key, cap reached, failure, or an unclear answer)."""
+    def floor_verdict(self, image_path, prompt=FLOOR_PROMPT):
+        """'FALLEN' | 'DELIBERATE' | 'NO' | 'UNSURE' | None (no key, cap reached, failure, or an unclear answer)."""
         b64 = base64.b64encode(Path(image_path).read_bytes()).decode()
         text = self.chat([{"role": "user", "content": [
-            {"type": "text", "text": FLOOR_PROMPT},
+            {"type": "text", "text": prompt},
             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}]}], max_tokens=5)
         word = (text or "").strip().strip(".").upper()
-        return word if word in ("FALLEN", "DELIBERATE", "UNSURE") else None
+        return word if word in ("FALLEN", "DELIBERATE", "NO", "UNSURE") else None
+
+    def fall_check(self, image_path):
+        """Second look at a fall the local model is about to push: ('FALLEN' | 'NO' | 'UNSURE' | None, reason)."""
+        text = self.chat([{"role": "user", "content": [
+            {"type": "text", "text": FALL_VERIFY_PROMPT}, _image(Path(image_path).read_bytes())]}], 40, NO_THINKING)
+        word, _, why = (text or "").partition("-")
+        word = word.strip().strip(".").upper()
+        return (word if word in ("FALLEN", "NO", "UNSURE") else None), why.strip().rstrip(".")[:80]
+
+    def review(self, jpegs, room):
+        """One stretch of footage with a person (frames 2 s apart) -> {"people", "postures", "activity", "fall", "why"}
+        or None (no key, cap, failure, unreadable answer)."""
+        text = self.chat([{"role": "user", "content": [
+            {"type": "text", "text": REVIEW_PROMPT.format(n=len(jpegs), room=room or "a room")},
+            *map(_image, jpegs)]}], 150, NO_THINKING)
+        try:
+            d = json.loads((text or "").strip().removeprefix("```json").strip("`").strip())
+            got = d.get("postures") or {}
+            postures = {k: len(v) if isinstance(v, list) else max(int(v or 0), 0)  # some answers list frame numbers
+                        for k, v in ((k, got.get(k)) for k in POSTURES)}
+            fall = str(d.get("fall", "")).upper()
+            return {"people": int(d.get("people") or 0), "postures": postures,
+                    "activity": str(d.get("activity") or "")[:60], "fall": fall if fall in ("FALLEN", "NO") else "UNSURE",
+                    "why": str(d.get("why") or "")[:80]}
+        except (ValueError, TypeError, AttributeError):
+            return None
 
     def daily_note(self, summary):
         """1-2 sentences for the family on top of the rule-based daily summary, or None (no key/cap/failure)."""
@@ -114,6 +159,13 @@ class LLM:
         if text:
             return {"text": text, "ai": True, "model": self.model}
         return {"text": template_report(facts), "ai": False, "note": UNAVAILABLE}
+
+
+NO_THINKING = {"reasoning": {"enabled": False}}  # one-word / small-JSON answers: thinking tokens only add cost
+
+
+def _image(jpeg):
+    return {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(jpeg).decode()}}
 
 
 def _cost(usage):
@@ -131,5 +183,5 @@ def template_report(facts):
         lines[0] += f" {g['Visitors']} other person(s) were seen."
     lines += ["", "Things to check:"]
     alerts = [e for e in facts.get("events", []) if e["severity"] != "info"]
-    lines += [f"- {e['clock']} {e['title']}: {e['detail']}" for e in alerts] or ["- Nothing needed attention in this clip."]
+    lines += [f"- {e['clock']} {e['title']}: {e['detail']}" for e in alerts] or ["- No fall detected. The camera can miss people who are far away, at the edge of the view or lying down."]
     return "\n".join(lines)

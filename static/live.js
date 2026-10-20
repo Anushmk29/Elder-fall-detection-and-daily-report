@@ -16,6 +16,13 @@ function cameraCard(c) {
 }
 
 function render(st) {
+  const toggle = $('#toggle');
+  if (!toggle.disabled) toggle.textContent = st.running ? 'Stop live' : 'Start live';
+  toggle.hidden = false;
+  if (!st.running && Object.keys(camEls).length) {
+    for (const k of Object.keys(camEls)) delete camEls[k];
+    $('#cams').textContent = 'Stopped. Press Start live to watch the cameras.';
+  }
   const status = st.running ? st.status : 'Not running';
   $('#status').textContent = status;
   $('#status').className = `pill ${status === 'ALERT' ? 'alert' : status === 'MONITOR' ? 'warn' : ''}`;
@@ -54,6 +61,19 @@ function render(st) {
     feed.append(li);
   }
 }
+
+$('#toggle').addEventListener('click', async () => {
+  const b = $('#toggle');
+  const start = b.textContent === 'Start live';
+  b.disabled = true;
+  b.textContent = start ? 'Starting…' : 'Stopping…';
+  try {
+    const r = await fetch(start ? '/api/live/start' : '/api/live/stop', { method: 'POST' });
+    if (!r.ok) alert((await r.json()).detail || 'Failed.');
+  } catch { alert('The server did not answer.'); }
+  b.disabled = false;
+  b.textContent = start ? 'Stop live' : 'Start live';
+});
 
 async function poll() {
   try { render(await (await fetch('/api/live/state')).json()); } catch { $('#status').textContent = 'Offline'; }

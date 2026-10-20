@@ -28,41 +28,9 @@ import eval_mcfd as ev  # noqa: E402
 import eval_staged as es  # noqa: E402
 import tune_collapse as tc  # noqa: E402
 from app import pipeline, tracks  # noqa: E402
+from app.fall_model import FPS, N_FEAT, WIN, FallGRU, got_up, track_series  # noqa: E402,F401
 
-FPS = 6
-WIN = 18            # 3 s window
-TAIL = 4 * FPS      # keep 4 s after a track's last detection (present=0): "disappeared" is a fall signal too
-N_FEAT = 17 * 3 + 5
 VAL_MCFD = range(13, 17)
-
-
-# ---------- 1. features: one vector per person per time step ----------
-def track_series(tr, duration):
-    """(T, N_FEAT) array on a fixed 6 fps grid + the grid times. Everything is expressed relative to the person's
-    own size and position over the previous 3 s, so the model learns "how the body moved", not "where in this
-    camera's image it was" (that is what lets it work on a camera it has never seen)."""
-    S = tr["samples"]
-    t0, t1 = S[0]["t"], min(S[-1]["t"] + TAIL / FPS, duration)
-    grid = np.arange(round(t0 * FPS), round(t1 * FPS) + 1) / FPS
-    by_step = {round(s["t"] * FPS): s for s in S}
-    X = np.zeros((len(grid), N_FEAT), np.float32)
-    hist = []  # recent (height, centre x, bottom) of seen frames
-    for i, t in enumerate(grid):
-        s = by_step.get(round(t * FPS))
-        hist = [h for h in hist if h[0] >= t - 3]
-        if s is None:
-            continue  # all zeros incl. present flag = 0
-        x1, y1, x2, y2 = s["box"]
-        hist.append((t, y2 - y1, (x1 + x2) / 2, y2))
-        H = max(h[1] for h in hist) or 1.0              # tallest recent height ~ upright height
-        cx = float(np.median([h[2] for h in hist]))
-        bot = float(np.median([h[3] for h in hist]))
-        kp = np.array(s["kp"], np.float32)
-        X[i, 0:51:3] = (kp[:, 0] - cx) / H
-        X[i, 1:51:3] = (kp[:, 1] - bot) / H
-        X[i, 2:51:3] = kp[:, 2]
-        X[i, 51:] = [(x2 - x1) / H, (y2 - y1) / H, (y1 - (bot - H)) / H, (y2 - bot) / H, 1.0]
-    return X, grid
 
 
 def build(clips, rules):
@@ -106,18 +74,7 @@ def mirror(x):
     return torch.cat([kp.reshape(*x.shape[:-1], 51), x[..., 51:]], -1)
 
 
-# ---------- 2. the model ----------
-class FallGRU(nn.Module):
-    """A GRU reads the 18 steps in order and keeps a running memory; the last memory -> one fall score."""
-    def __init__(self, hidden=64):
-        super().__init__()
-        self.gru = nn.GRU(N_FEAT, hidden, batch_first=True)
-        self.head = nn.Sequential(nn.Dropout(0.3), nn.Linear(hidden, 1))
-
-    def forward(self, x):
-        _, h = self.gru(x)
-        return self.head(h[-1]).squeeze(-1)  # a logit; sigmoid(logit) = probability of a fall
-
+# ---------- 2. the model: app/fall_model.py (FallGRU) ----------
 
 # ---------- 3. from window scores to fall events, scored exactly like the rules ----------
 @torch.no_grad()
@@ -129,16 +86,6 @@ def predict(model, series, dev):
         p = torch.sigmoid(model(x.to(dev))).cpu().numpy()
         out.append((grid[WIN - 1:], p, c, S))
     return out
-
-
-def got_up(S, t, secs):
-    """The same stay-down idea as the rules: standing as tall as before the fall within `secs` = not a fall."""
-    before = [s["box"][3] - s["box"][1] for s in S if t - 3 <= s["t"] <= t - 0.5]
-    if not before:
-        return False
-    H = max(before)
-    return any(s["posture"] == "standing" and s["box"][3] - s["box"][1] >= 0.85 * H
-               for s in S if t + 1 <= s["t"] <= t + secs)
 
 
 def events(preds, thr, refractory=10.0, confirm_s=0):

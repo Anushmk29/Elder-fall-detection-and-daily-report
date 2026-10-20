@@ -52,7 +52,7 @@ def detect_falls(samples, cfg):
     while k < n:
         s = samples[k]
         upright = [p for p in samples[:k] if p["posture"] in UPRIGHT and 0 < s["t"] - p["t"] <= cfg["window_s"]]
-        if s["posture"] in UPRIGHT or not upright:
+        if s["posture"] in UPRIGHT or not upright or s.get("cut"):
             k += 1
             continue
         u = upright[0]
@@ -92,7 +92,7 @@ def detect_collapse(samples, cfg):
     while frac and k < n:
         s = samples[k]
         ups = [p for p in samples[:k] if p["posture"] in UPRIGHT and 0 < s["t"] - p["t"] <= cfg.get("collapse_window_s", 1.5)]
-        p = next((p for p in ups if s["box"][1] - p["box"][1] >= frac * _height(p)
+        p = None if s.get("cut") else next((p for p in ups if s["box"][1] - p["box"][1] >= frac * _height(p)
                   and s["box"][3] >= p["box"][3] - cfg.get("collapse_feet", 0.15) * _height(p)), None)
         if not p:
             k += 1
@@ -201,6 +201,7 @@ def analyze(tracks, meta, rules):
         tr["visible_s"] = sum(sample_dt(tr["samples"], k, fps) for k in range(len(tr["samples"])))
         for s in tr["samples"]:
             s["zones"] = [z["name"] for z in zones_at((s["pt"][0] / W, s["pt"][1] / H), zones)]
+            s["cut"] = s["box"][1] <= rules["fall"].get("cut_top", -1) * H  # cut off by the top of the frame
     # The longest-visible person is the resident; everyone else is a visitor/caregiver.
     order = sorted(tracks, key=lambda tr: -tr["visible_s"])
     for n, tr in enumerate(order):

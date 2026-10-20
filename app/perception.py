@@ -11,6 +11,7 @@ from ultralytics.trackers.byte_tracker import BYTETracker
 from ultralytics.utils import YAML, IterableSimpleNamespace
 from ultralytics.utils.checks import check_yaml
 
+from .events import in_poly
 from .posture import classify
 
 BASE = Path(__file__).resolve().parent.parent
@@ -68,8 +69,13 @@ def _detect(model, tracker, fragment_ids, frame, rules):
     det = r.boxes.cpu().numpy()
     tracked = tracker.update(det, frame)  # rows: x1, y1, x2, y2, id, score, cls, det_index
     id_of = {int(row[-1]): int(row[4]) for row in tracked}
+    h, w = frame.shape[:2]
+    ignore = [z["polygon"] for z in rules.get("zones", []) if z.get("kind") == "ignore"]  # a cloth, a chair stack
     people = []
     for k, (box, conf, kp) in enumerate(zip(det.xyxy.tolist(), det.conf.tolist(), r.keypoints.data.tolist())):
+        cx, cy = (box[0] + box[2]) / 2 / w, (box[1] + box[3]) / 2 / h
+        if any(in_poly(cx, cy, p) for p in ignore):
+            continue
         tid = id_of.get(k) or next(fragment_ids)
         box = [round(v, 1) for v in box]
         kp = [[round(x, 1), round(y, 1), round(c, 2)] for x, y, c in kp]

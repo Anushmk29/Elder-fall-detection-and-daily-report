@@ -11,6 +11,7 @@ import threading
 import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile
@@ -39,8 +40,8 @@ EXAMPLES.mkdir(exist_ok=True)
 jobs = Jobs(pipeline.DATA_DIR, pipeline.run, float(os.environ.get("RETENTION_HOURS", "24")))
 
 
-engine = None  # live.Engine, created at startup when cameras.yaml exists, or by the first "play as live camera"
-_engine_lock = threading.Lock()
+engine = None  # live.Engine: created by "Start live" or the first replay/"play as live camera"; nothing (no model, no
+_engine_lock = threading.Lock()  # GPU) runs before that
 
 
 def _engine():
@@ -48,7 +49,7 @@ def _engine():
     with _engine_lock:
         if engine is None:
             from . import live  # imports torch/YOLO; keep plain upload startup light
-            engine = live.Engine(live.CAMERAS_PATH if live.CAMERAS_PATH.exists() else None)
+            engine = live.Engine(None)
             engine.start()
     return engine
 
@@ -56,8 +57,6 @@ def _engine():
 @asynccontextmanager
 async def lifespan(app):
     jobs.start()
-    if (BASE / "cameras.yaml").exists() or os.environ.get("CAMERAS_FILE"):
-        threading.Thread(target=_engine, daemon=True, name="live-start").start()
     yield
     if engine:
         engine.stop()
@@ -198,7 +197,7 @@ def create_job(request: Request, file: UploadFile = File(...), consent: str = Fo
     except BaseException:
         path.unlink(missing_ok=True)
         raise
-    jobs.submit(job_id, path)
+    jobs.submit(job_id, path, Path(file.filename or '').name)
     return {"id": job_id, "status_url": f"/api/jobs/{job_id}", "result_url": f"/r/{job_id}"}
 
 
@@ -321,6 +320,41 @@ def live_state(request: Request):
     return {"running": True, **engine.status(), "events": list(engine.recent)[-60:][::-1]}
 
 
+@app.post("/api/live/start")
+def live_start(request: Request):
+    """Start live: the cameras in cameras.yaml (the pose model loads onto the GPU now, not at server start)."""
+    _lan_only(request)
+    from . import live
+    if not live.CAMERAS_PATH.exists():
+        raise HTTPException(400, "No cameras.yaml: copy cameras.example.yaml and add your cameras.")
+    e = _engine()
+    for c in live.load_cameras(live.CAMERAS_PATH):
+        old = e.cameras.get(str(c["name"]))
+        if not old or not old.thread.is_alive():
+            e.add(c)
+    return {"running": True, "cameras": sorted(e.cameras)}
+
+
+@app.post("/api/live/stop")
+def live_stop(request: Request):
+    """Stop everything live (replays too) and give the GPU back: the model is dropped once the camera threads end."""
+    _lan_only(request)
+    global engine
+    with _engine_lock:
+        e, engine = engine, None
+    if e:
+        e.stop()
+        threads = [c.thread for c in e.cameras.values() if c.thread.is_alive()]
+        e = None
+        for t in threads:
+            t.join(timeout=15)
+        import gc
+        import torch
+        gc.collect()
+        torch.cuda.empty_cache()
+    return {"running": False}
+
+
 @app.get("/api/live/events")
 def live_events(request: Request, date: str = ""):
     _lan_only(request)
@@ -349,7 +383,7 @@ def live_mjpeg(cam: str, request: Request):
 
     def frames():
         last = None
-        while not c.stop_event.is_set():
+        while not c.stop_event.is_set() and not c.state["finished"]:  # a finished clip must not hold a thread forever
             if c.jpeg is not last and c.jpeg:
                 last = c.jpeg
                 yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + last + b"\r\n"
@@ -381,6 +415,164 @@ def live_play(request: Request, file: UploadFile = File(...), room: str = Form("
     return {"camera": name}
 
 
+DAY_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _day(day):
+    try:
+        datetime.strptime(day, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(400, "date must be YYYY-MM-DD")
+    return day
+
+
+def _zone_files():
+    return {p.name: p for p in sorted((BASE / "videos").glob("*.yaml"))}
+
+
+@app.get("/day")
+def day_page(request: Request):
+    _lan_only(request)
+    return FileResponse(STATIC / "day.html")
+
+
+@app.get("/api/day/zones")
+def day_zones(request: Request):
+    _lan_only(request)
+    return list(_zone_files())
+
+
+@app.post("/api/day/add")
+def day_add(request: Request, file: UploadFile = File(...), date: str = Form(...), start: str = Form(...),
+            room: str = Form(...), zones: str = Form(""), notify: str = Form("")):
+    """Day replay: a recording from one camera at a given date + start time runs through the live engine as fast as
+    the GPU allows; its events land in that day's log, so the day's report includes it."""
+    _lan_only(request)
+    _day(date)
+    try:
+        at = datetime.strptime(f"{date} {start}", "%Y-%m-%d %H:%M")
+    except ValueError:
+        raise HTTPException(400, "start must be HH:MM")
+    room = room.strip()[:40]
+    if not room:
+        raise HTTPException(400, "Give the room this camera watches (e.g. Kitchen, Bedroom, Bathroom).")
+    if zones and zones not in _zone_files():
+        raise HTTPException(400, "Unknown zones file")
+    ext = Path(file.filename or "").suffix.lower()
+    if ext not in VIDEO_EXTS:
+        raise HTTPException(400, "Please upload a video file.")
+    from . import live
+    name = f"{re.sub(r'[^a-z0-9]+', '-', room.lower()).strip('-')[:20] or 'cam'}-{at:%H%M}"
+    d = live.LIVE_DIR / "files" / date
+    d.mkdir(parents=True, exist_ok=True)
+    path = d / f"{name}{ext}"
+    with open(path, "wb") as out:
+        shutil.copyfileobj(file.file, out, 1 << 20)
+    try:
+        pipeline.probe(path)
+    except (ValueError, OSError):
+        path.unlink(missing_ok=True)
+        raise HTTPException(400, "That file doesn't look like a playable video.")
+    _engine().add({"name": name, "source": str(path), "room": room, "start_at": at.timestamp(), "realtime": False,
+                   "rules": str(_zone_files()[zones]) if zones else None,
+                   "notify": notify.lower() in ("yes", "true", "on", "1")})
+    return {"camera": name}
+
+
+@app.post("/api/day/clear")
+def day_clear(request: Request, date: str = Body(..., embed=True)):
+    """Forget one day's events and report (to re-run a replayed day). Snapshots are kept."""
+    _lan_only(request)
+    from . import daily, live
+    for p in (live.LIVE_DIR / f"events-{_day(date)}.jsonl", daily.DAILY_DIR / f"{date}.json",
+              daily.DAILY_DIR / f"{date}.sent"):
+        p.unlink(missing_ok=True)
+    return {"cleared": date}
+
+
+@app.get("/api/day/{day}")
+def day_result(day: str, request: Request):
+    """The day's report (text + metrics vs the 7-day baseline) and its event log."""
+    _lan_only(request)
+    from . import daily, live, llm
+    text, m, base, flags = daily.report(_day(day), llm.LLM(pipeline.DATA_DIR / "llm"))
+    clips = {d.name: sorted(p.stem for p in d.glob("??????.mp4"))  # scripts/dvr.py: <cam>/<HHMMSS>.mp4
+             for d in sorted((DVR_DIR / day).glob("*/")) if d.is_dir()}
+    return {"text": text, "metrics": m, "baseline": base, "flags": flags, "numeric": daily.NUMERIC,
+            "events": live.read_events(day), "clips": {k: v for k, v in clips.items() if v}}
+
+
+DVR_DIR = BASE / "data" / "dvr"
+
+
+@app.get("/media/dvr/{day}/{camera}/{clip}.mp4")
+def dvr_clip(day: str, camera: str, clip: str, request: Request):
+    """One DVR clip of a replayed day, so the day page can show what really happened (range requests for seeking)."""
+    _lan_only(request)
+    if not re.fullmatch(r"\d{6}", clip) or not re.fullmatch(r"[\w-]+", camera):
+        raise HTTPException(404)
+    p = DVR_DIR / _day(day) / camera / f"{clip}.mp4"
+    if not p.is_file():
+        raise HTTPException(404)
+    return FileResponse(p, media_type="video/mp4")
+
+
+# ---- history: everything processed on this machine, with delete ------------------------------------------
+@app.get("/history")
+def history_page(request: Request):
+    _lan_only(request)
+    return FileResponse(STATIC / "history.html")
+
+
+@app.get("/api/history")
+def history(request: Request):
+    """Uploaded clips (kept RETENTION_HOURS) and days with live/replayed events or a report, newest first."""
+    _lan_only(request)
+    from . import daily, live
+    uploads = []
+    for st in jobs.all():
+        r = _read_json(jobs.results / st["id"] / "result.json", {})
+        ev = r.get("events", [])
+        uploads.append({"id": st["id"], "name": st.get("name") or "Uploaded clip", "created": st["created"],
+                        "status": st["status"], "duration": r.get("duration"),
+                        "alerts": sum(e["severity"] != "info" for e in ev),
+                        "falls": sum(e["type"] in ("fall", "ai_fall") for e in ev),
+                        "poster": f"/media/results/{st['id']}/{r['poster']}" if r.get("poster") else ""})
+    days = {p.stem for p in daily.DAILY_DIR.glob("*.json")} | {p.stem[7:] for p in live.LIVE_DIR.glob("events-*.jsonl")}
+    days |= {p.name for p in (live.LIVE_DIR / "files").glob("*") if p.is_dir()}
+    out = []
+    for day in sorted((d for d in days if DAY_RE.match(d)), reverse=True):
+        evts, m = live.read_events(day), _read_json(daily.DAILY_DIR / f"{day}.json", {})
+        files = live.LIVE_DIR / "files" / day
+        out.append({"day": day, "events": len(evts), "alerts": sum(e["severity"] == "alert" for e in evts),
+                    "falls": sum(e["type"] == "fall_alert" for e in evts), "synthetic": bool(m.get("synthetic")),
+                    "videos": len(_videos(files)), "report_sent": (daily.DAILY_DIR / f"{day}.sent").exists()})
+    return {"uploads": uploads, "days": out, "retention_hours": jobs.retention / 3600}
+
+
+@app.delete("/api/history/upload/{job_id}")
+def history_delete_upload(job_id: str, request: Request):
+    _lan_only(request)
+    if not jobs.delete(job_id):
+        raise HTTPException(404, "Not found, or still processing")
+    return {"deleted": job_id}
+
+
+@app.delete("/api/history/day/{day}")
+def history_delete_day(day: str, request: Request):
+    """Everything about one day: events, report, its replayed videos and its snapshots."""
+    _lan_only(request)
+    from . import daily, live
+    day = _day(day)
+    for p in (live.LIVE_DIR / f"events-{day}.jsonl", daily.DAILY_DIR / f"{day}.json", daily.DAILY_DIR / f"{day}.sent"):
+        p.unlink(missing_ok=True)
+    shutil.rmtree(live.LIVE_DIR / "files" / day, ignore_errors=True)
+    for p in live.SNAP_DIR.glob("*.jpg"):
+        if p.name.split("-")[0].isdigit() and datetime.fromtimestamp(int(p.name.split("-")[0])).strftime("%Y-%m-%d") == day:
+            p.unlink(missing_ok=True)
+    return {"deleted": day}
+
+
 @app.get("/live/report")
 @app.get("/live/report/{day}")
 def live_report(request: Request, day: str = ""):
@@ -395,7 +587,9 @@ def live_report(request: Request, day: str = ""):
     return HTMLResponse(
         "<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"
         "<meta name=robots content=noindex><title>Daily report</title><link rel=stylesheet href=/static/style.css>"
-        "<header class=top><a class=brand href=/live>ElderCare <span>Guardian</span></a></header><main>"
+        "<header class=top><a class=brand href=/>ElderCare <span>Guardian</span></a><nav class=nav aria-label=Main>"
+        "<a href=/>Analyse a clip</a><a href=/day>Day replay</a><a href=/live>Live</a>"
+        "<a href=/live/report aria-current=page>Report</a><a href=/history>History</a></nav></header><main>"
         f"<section class=card><h1>Daily report</h1><p style='white-space:pre-wrap'>{html.escape(text)}</p></section>"
         f"<section class=card><h2>Today vs 7-day average</h2><table><tr><th>Metric</th><th>Today</th><th>Average</th>"
         f"<th></th></tr>{rows}</table></section></main>")

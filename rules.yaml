@@ -38,6 +38,8 @@ fall:
   vanish_min_aspect: 1.2  # the last-seen box must be wide (on the floor), not upright (walked behind furniture)
   collapse_frac: 0        # or (OFF; 0.45 in a camera's rules file enables it): whatever the posture says, the box
   collapse_window_s: 1.0  # top drops this many body heights this fast, feet put (falls ending seated, GUIDE §7)
+  cut_top: 0.01           # a box this close to the top of the frame is cut off (someone in a far doorway): its
+                          # "hips" are wherever the frame cuts them, so it can't start a fall (5 false alerts, 18 Oct)
 
 lying_outside_rest_s: 120
 floor_low_ratio: 0.5      # also "on the floor": box <= this x their walking height at the same spot, whatever the pose
@@ -59,5 +61,6 @@ live:                     # live cameras (cameras.yaml) use these instead of the
   bathroom_alert_s: 2700  # ...this long -> ALERT. Keeps counting while behind the bathroom door, out of sight
   not_seen_s: 14400       # nobody on any camera this long...
   day_hours: [8, 21]      # ...during these hours -> "Not seen for a while" (MONITOR)
+  fall_model: true        # also use the trained GRU (models/fall_gru.pt) as a fall signal; see learning/GUIDE.md run 19
 
 zones: []                 # none by default; per camera/clip in its own file (see videos/*.yaml)

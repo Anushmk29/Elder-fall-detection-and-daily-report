@@ -9,8 +9,8 @@
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="/">ElderCare <span>Vision</span></a>
-  <a class="pill" href="/live">Live cameras →</a>
+  <a class="brand" href="/">ElderCare <span>Guardian</span></a>
+  <nav class="nav" aria-label="Main"><a href="/" aria-current="page">Analyse a clip</a><a href="/day">Day replay</a><a href="/live">Live</a><a href="/live/report">Report</a><a href="/history">History</a></nav>
 </header>
 <main>
   <section class="hero">
@@ -37,7 +37,8 @@
     <form id="form" class="card upload">
       <h2>Try your own clip</h2>
       <p class="muted">MP4, MOV, WebM, MKV or AVI, up to <span data-max-seconds>60</span> seconds and <span data-max-mb>100</span> MB.
-        Processing runs on CPU and usually takes under a minute.</p>
+        Processing usually takes under a minute. Clips are only analysed here: phone alerts and the daily report
+        come from <a href="/day">Day replay</a> and <a href="/live">Live cameras</a>.</p>
       <label class="drop" id="drop">
         <input type="file" name="file" accept="video/*,.mp4,.mov,.webm,.mkv,.avi" required>
         <span id="fname">Choose a video, or drop it here</span>

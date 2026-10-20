@@ -58,9 +58,43 @@ cameras.yaml ─► app/live.py  one thread per camera, 6 fps, GPU if available,
 3. Start the app with `--host 0.0.0.0` so phones and Home Assistant can reach it, and open
    http://localhost:8000/live. It shows every camera with skeletons, the current room and today's events, and has a
    **Play as live camera** form to push a recorded clip (e.g. a staged fall) through the live rules.
-4. Report: http://localhost:8000/live/report, or `python scripts/daily_report.py [--date ..] [--send]`.
+4. **Day replay** (http://localhost:8000/day): add a day's recordings from several cameras, each with its room, the
+   time it started and optionally a zones file (`videos/*.yaml`, for the sofa/bed). They run through the same live
+   rules as fast as the GPU allows, stamped with that date, and the page shows the day's report, a room timeline and
+   every fall/alert with its snapshot. Replays don't push to the phone unless you tick that box, and skip the
+   bathroom/not-seen checks (those count from *now*). Dataset clips that end seconds after a fall can't show a fall
+   alert (it needs 30 s down); a real recording that keeps running does.
+5. Report: http://localhost:8000/live/report, or `python scripts/daily_report.py [--date ..] [--send]`.
    `python scripts/seed_history.py` writes 7 days of clearly-marked demo history so the baseline comparison
    shows on the first day.
+
+### 5-minute demo
+
+1. In `.env` set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `OPENROUTER_API_KEY` and `VLM_SECOND_OPINION=1` (AI text
+   and the AI review send frames to OpenRouter: every stretch of footage with a person, 768 px every 2 s, about
+   $0.4–1.5 a day for 5 cameras; each fall is checked before it is pushed), then start with
+   `.venv\Scripts\python -m uvicorn app.main:app --host 0.0.0.0 --port 8000` (`.env` is read automatically).
+2. `python scripts/seed_history.py`: a week of clearly-marked demo days, so the report has a baseline.
+3. Open http://localhost:8000/day, tick **Also send alerts to the phone** and add the clips in `data/demo/`
+   (git-ignored; copied from Le2i, MCFD and a public doorbell video):
+
+| Clip | What it shows |
+|---|---|
+| `1_fall_stays_down.mp4` | "Possible fall", then ~30 s later a **FALL ALERT** with a photo on Telegram |
+| `2_fall_gets_up.avi` | "Fall, got up": a check-in message, no alarm |
+| `3_normal_activity.avi` | two minutes of ordinary moving around: nothing is pushed |
+| `4_doorbell_fall_needs_ai.mp4` | the pose model loses the couple once they're on the ground; only the AI second opinion (step 1) catches it |
+
+4. The page then shows the room timeline, every event with its snapshot and the day's report vs the past week.
+
+**What to tell people (measured on clips the system was never tuned on, learning/GUIDE.md runs 13-19):** of falls
+where the person stays down, **about 3 in 4** reach the family, about **31 s** after the fall (the deliberate wait to
+see if they get up), with **0 false fall alerts**; "fell, got up" check-ins ~3 per hour of busy acted footage. It works
+for indoor cameras mounted high with the room in view; far-away, outdoor or edge-of-view falls are often missed
+(the AI second opinion helps there). Not a medical device.
+
+The home page (`/`) analyses a single clip with the same rules but never sends to the phone; the GRU second signal and
+the AI lost-sight check run in `/live` and `/day`.
 
 Live pages are served only to private-network addresses (this laptop, phones on the Wi-Fi, HA in Docker).
 
@@ -120,7 +154,7 @@ cache, cost cap, fallback) and the HTTP API end to end on the synthetic clip (ab
 | `OPENROUTER_API_KEY` | none | Without it, captions and the report use templates labelled "AI text unavailable" |
 | `OPENROUTER_MODEL` | `google/gemini-2.5-flash` | Any vision-capable OpenRouter model |
 | `MAX_LLM_USD_PER_DAY` | `2` | Uses the cost OpenRouter reports. After the cap, templates are used until midnight (server time) |
-| `VLM_SECOND_OPINION` | off | `1` = when someone is on the floor but moving, ask the vision model "fallen or on purpose?"; it can only raise an alert, never cancel one. Sends a home camera frame to OpenRouter |
+| `VLM_SECOND_OPINION` | off | `1` = when someone is on the floor but moving, or drops out of sight with nobody standing, ask the vision model whether it looks like a fall; it can only raise an alert, never cancel one. Sends a home camera frame to OpenRouter. Uploads get a similar check on their last two strips whenever `OPENROUTER_API_KEY` is set |
 | `DEMO_PASSCODE` | none | If set, uploads require it |
 | `RETENTION_HOURS` | `24` | Uploaded results are deleted after this |
 | `UPLOADS_PER_HOUR` | `5` | Per IP |

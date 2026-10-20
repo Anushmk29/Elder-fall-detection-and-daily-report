@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day Replay</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">ElderCare <span>Guardian</span></a>
+  <nav class="nav" aria-label="Main"><a href="/">Analyse a clip</a><a href="/day" aria-current="page">Day replay</a><a href="/live">Live</a><a href="/live/report">Report</a><a href="/history">History</a></nav>
+  <span class="pill" id="status">Ready</span>
+</header>
+<main>
+  <section class="day-head">
+    <div>
+      <p class="eyebrow">Day replay</p>
+      <h1 id="day-title">A day at home</h1>
+    </div>
+    <div class="day-nav" id="day-nav" hidden>
+      <button type="button" class="ghost" id="prev-day" title="Previous day">◀</button>
+      <input type="date" id="pick-day" aria-label="Day">
+      <button type="button" class="ghost" id="next-day" title="Next day">▶</button>
+      <button type="button" id="refresh">Refresh</button>
+    </div>
+  </section>
+
+  <details id="add" class="card add" open>
+    <summary>Add recordings for a day</summary>
+    <p class="muted">Add each camera's videos for one day, with the room and the time each recording started. They
+      run through the same fall detection and rules as the live cameras (as fast as the computer allows), and the
+      day's report is built from them.</p>
+  <form id="day">
+    <div class="day-bar">
+      <label class="field">Date <input type="date" name="date" required></label>
+      <label class="check"><input type="checkbox" name="fresh" checked> Start fresh: forget this day's earlier
+        results first</label>
+      <label class="check"><input type="checkbox" name="notify"> Also send alerts to the phone</label>
+    </div>
+    <label class="drop" id="drop"><input type="file" id="files" accept="video/*" multiple>
+      <span>Choose or drop videos (several at once is fine)</span></label>
+    <div class="table-wrap">
+      <table class="batch-table" id="clips" hidden>
+        <thead><tr><th>Video</th><th>Room / camera</th><th>Started at</th><th>Zones (sofa, bed…)</th><th>Progress</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <datalist id="rooms"><option>Bedroom</option><option>Kitchen</option><option>Bathroom</option>
+      <option>Living room</option><option>Hallway</option></datalist>
+    <p class="muted small">Room names matter for the report: it recognises <b>kitchen</b>, <b>bath</b>/toilet and
+      <b>bed</b>room. Without a zones file a sofa or bed isn't known, so lying on it counts as "on the floor".</p>
+    <button id="go" disabled>Process day</button>
+    <p id="msg" class="muted"></p>
+  </form>
+  </details>
+
+  <section id="watching" hidden>
+    <h2>Processing</h2>
+    <div id="cams" class="cams"></div>
+  </section>
+
+  <section id="result" hidden>
+    <div class="tiles" id="tiles"></div>
+
+    <div class="day-grid">
+      <div class="day-left">
+        <div class="card" id="player">
+          <div class="player-head">
+            <div><h2 id="player-title">Pick a moment</h2><p class="muted small" id="player-sub"></p></div>
+            <div class="player-btns">
+              <button type="button" class="ghost" id="prev-clip" title="Previous moment (P)">◀</button>
+              <button type="button" class="ghost" id="next-clip" title="Next moment (N)">▶</button>
+              <button type="button" id="full" title="Full screen (F)">⛶ Full screen</button>
+            </div>
+          </div>
+          <video id="video" controls playsinline preload="metadata"></video>
+          <p class="muted small" id="player-note">Keys: N next moment · P previous · F full screen. Click a coloured bar
+            below to jump there.</p>
+          <div id="timeline" class="timeline"></div>
+        </div>
+      </div>
+
+      <div class="card day-right">
+        <div class="mo-head">
+          <h2>Moments <span class="muted small" id="mo-count"></span></h2>
+          <div class="chips" id="chips"></div>
+          <label class="check small"><input type="checkbox" id="show-empty"> Show clips where the AI saw nobody</label>
+        </div>
+        <ol class="mo-list" id="moments"></ol>
+      </div>
+    </div>
+
+    <div class="card report-card">
+      <h2>Report for the family</h2>
+      <p id="report" class="report"></p>
+    </div>
+    <div class="card" id="compare" hidden>
+      <h2>Compared with the last 7 days</h2>
+      <table class="batch-table" id="metrics"></table>
+    </div>
+  </section>
+</main>
+<footer>Proof of concept, not a medical device. Footage stays on this computer.</footer>
+<script src="/static/day.js"></script>
+</body>
+</html>
